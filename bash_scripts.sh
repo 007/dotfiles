@@ -2,8 +2,7 @@
 # add paths carefully - match on the path we're adding so we don't double-add
 [[ "$PATH" =~ .*\/usr\/local\/git\/bin.* ]] || export PATH=/usr/local/git/bin:$PATH
 [[ "$PATH" =~ .*\/usr\/local\/pear\/bin.* ]] || export PATH=/usr/local/pear/bin:$PATH
-[[ "$PATH" =~ .*\/Applications\/Xcode.app\/Contents\/Developer\/usr\/bin.* ]] || export
-PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH
+[[ "$PATH" =~ .*\/Applications\/Xcode.app\/Contents\/Developer\/usr\/bin.* ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH
 [[ "$PATH" =~ .*\/Users\/rmoore\/bin.* ]] || export PATH=/Users/rmoore/bin:$PATH
 
 export SSH_ASKPASS="/usr/libexec/ssh-askpass"
