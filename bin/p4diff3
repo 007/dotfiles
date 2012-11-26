@@ -1,0 +1,21 @@
+#!/bin/bash
+echo "$@" > ~/wtf.debug
+
+shift
+shift
+shift
+shift
+shift
+shift
+shift
+shift
+
+LEFT=$2
+RIGHT=$3
+MERGE=$1
+
+echo "diff $LEFT $RIGHT $MERGE" >> ~/wtf.debug
+/Users/ryan/bin/p4merge.app/Contents/MacOS/p4merge -tw 4 -dw "$RIGHT" "$LEFT" "$RIGHT" "$MERGE"
+#/home/rmoore/p4v/bin/p4merge -tw 4 -dw "$LEFT" "$RIGHT" "$MERGE" --
+cat "$MERGE"
+# "$@"

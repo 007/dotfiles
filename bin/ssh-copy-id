@@ -1,0 +1,28 @@
+#!/bin/sh
+
+ssh-add -L 2>&1 > /dev/null && KEY=`ssh-add -L` || KEY=0
+if [ "$KEY" == 0 ] ; then
+  if [ -f ~/.ssh/id_dsa.pub ] ; then
+    KEY="`cat ~/.ssh/id_dsa.pub`"
+  else
+    if [ -f ~/.ssh/id_rsa.pub ] ; then
+        KEY="`cat ~/.ssh/id_rsa.pub`"
+    else
+      echo "private key not found at ~/.ssh/id_?sa.pub"
+      echo "* please create it with "ssh-keygen -t dsa" *"
+      echo "* to login to the remote host without a password, don't give the key you create with ssh-keygen a password! *"
+      exit
+    fi
+  fi
+fi
+
+if [ -z $1 ];then
+    echo "Please specify user@host.tld as the first switch to this script"
+    exit
+fi
+
+echo "Putting your key on $1... "
+
+ssh -q $1 "mkdir ~/.ssh 2>/dev/null;chmod 700 ~/.ssh;touch ~/.ssh/authorized_keys;chmod 666 ~/.ssh/authorized_keys;echo \"$KEY\" >> ~/.ssh/authorized_keys;chmod 644 ~/.ssh/authorized_keys"
+
+echo "done!"

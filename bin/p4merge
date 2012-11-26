@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "p4merge"
+echo "$@"
+
+LEFT=$6
+RIGHT=$7
+
+echo "diff $LEFT $RIGHT"
+/home/rmoore/p4v/bin/p4merge -tw 4 -dw "$LEFT" "$RIGHT"
+# "$@"
