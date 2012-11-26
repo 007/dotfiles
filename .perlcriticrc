@@ -1,0 +1,30 @@
+exclude = RequireBarewordIncludes
+
+# Now module specific things
+[Objects::ProhibitIndirectSyntax]
+severity = 5
+
+[BuiltinFunctions::ProhibitVoidMap]
+severity = 5
+
+[BuiltinFunctions::ProhibitVoidGrep]
+severity = 5
+
+[Modules::ProhibitExcessMainComplexity]
+max_mccabe = 50
+severity = 5
+
+[Subroutines::ProhibitExcessComplexity]
+max_mccabe = 50
+severity = 5
+
+[ValuesAndExpressions::ProhibitConstantPragma]
+severity = 5
+
+[Variables::ProhibitReusedNames]
+severity = 5
+allow = $resp
+
+[Modules::RequireFilenameMatchesPackage]
+severity = 4
+
