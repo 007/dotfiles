@@ -37,3 +37,4 @@ autocmd QuickFixCmdPost    l* nested lwindow
 compiler perlcritic
 "map <F5> :silent<space>make<space><cr>:redraw!<cr>
 map <F5> :silent<space>make<cr>:redraw!<cr>
+map <F2> :colo<space>vividchalk<cr>

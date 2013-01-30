@@ -27,7 +27,8 @@ alias htop="top -u"
 alias p4merge="~/bin/p4merge.app/Contents/MacOS/p4merge"
 alias critic="svn st | grep ^M | cut -c2- | xargs perlcritic --statistics --verbose '%f:%l:%c:[%p] %m\n'"
 alias svngrep="find . -type f -not -path '*.svn/*' -not -path '*.git/*' -print0 | xargs -0 grep -InH"
-
+alias syncup="ssh superdev svn up ~/src/montage;rsync -CrPaz ~/src/montage/ superdev:~/src/montage/"
+alias syncdown="svn up ~/src/montage && rsync -CrPaz superdev:~/src/montage/ ~/src/montage/"
 # end aliases }}}
 
 # FUNCTIONS - more complicated mojo {{{
