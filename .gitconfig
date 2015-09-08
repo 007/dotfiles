@@ -1,18 +1,21 @@
 [user]
-	email = ryan@polyvore.com
-	name = Ryan Moore
+    email = ryan.moore@grandrounds.com
+    name = Ryan Moore
+
+[push]
+    default = simple
 
 [diff]
-  external = /Users/ryan/bin/gitdiff
+    external = /Users/ryan/bin/gitdiff
 
 [merge]
-        keepBackup = false
-        tool = custom
-        #tool = p4merge
+    keepBackup = false
+    tool = custom
+    #tool = p4merge
         
 [mergetool "custom"]
-        cmd = /Users/ryan/bin/diff3wrap.sh "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
+    cmd = ${HOME}/bin/diff3wrap.sh "$BASE" "$REMOTE" "$LOCAL" "$MERGED"
 #Applications/p4merge.app/Contents/Resources/launchp4merge "$PWD/$BASE" "$PWD/$REMOTE" "$PWD/$LOCAL" "$PWD/$MERGED"
-        keepTemporaries = false
-        trustExitCode = false
-        keepBackup = false
+    keepTemporaries = false
+    trustExitCode = false
+    keepBackup = false
