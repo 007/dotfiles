@@ -1,21 +1,52 @@
 #!/bin/bash
+
+# PATHS - things we want to find easily {{{
+
 # add paths carefully - match on the path we're adding so we don't double-add
 [[ "$PATH" =~ .*\/usr\/local\/git\/bin.* ]] || export PATH=/usr/local/git/bin:$PATH
 [[ "$PATH" =~ .*\/usr\/local\/pear\/bin.* ]] || export PATH=/usr/local/pear/bin:$PATH
 [[ "$PATH" =~ .*\/Applications\/Xcode.app\/Contents\/Developer\/usr\/bin.* ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH
 [[ "$PATH" =~ .*\/home\/rmoore\/bin.* ]] || export PATH=/home/rmoore/bin:$PATH
 [[ "$PATH" =~ .*\/Users\/rmoore\/bin.* ]] || export PATH=/Users/rmoore/bin:$PATH
+[[ "$PATH" =~ .*\/rmoore\/.rvm\/bin.* ]] || export PATH="$PATH:/home/rmoore/.rvm/bin" # Add RVM to PATH for scripting
 
+# end paths }}}
 
 # EXPORTS - swanky variables {{{
 
 #export SSH_ASKPASS="/usr/libexec/ssh-askpass"
 export EDITOR="vim"
+export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
+export KEY_SUFFIX="grandrounds.com"
+
+# end exports }}}
+
+# SHELL - magic shell incantations {{{
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
 export HISTCONTROL=ignoreboth
+# infinite history
+HOSTNAME="$(hostname)"
+HOSTNAME_SHORT="${HOSTNAME%%.*}"
+export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT}_$$"
 export HISTFILESIZE=50000
 export HISTSIZE=50000
 
-# end exports }}}
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color) color_prompt=yes;;
+esac
+
+# end shell}}}
 
 # ALIASES - one-liners and whatnot {{{
 
@@ -28,13 +59,16 @@ alias fixdns='dscacheutil -flushcache'
 alias lssub='find . -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 | xargs -0 stat -F'
 alias fact="curl -s randomfunfacts.com | grep strong | cut -d\> -f5- | cut -d\< -f1"
 alias critic='svnperl | xargs perlcritic -p ~/.perlcriticrc.local --statistics --verbose "%f:%l:%c:[%p] %m\n"'
-alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 | xargs -0 grep -InH'
+alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
 alias lintperl="svnperl | xargs -I{} perl -cIlib {}"
 alias lockup='light-locker-command --lock'
 alias emacs="emacs -nw"
 alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
+alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;done"
+alias icd10='xzcat ~/icd10.txt.xz | grep'
+alias lintpuppet='find . -type f -name "*.pp" -print0 | xargs -0 puppet parser validate && puppet-lint --fail-on-warnings modules/ || figlet FAIL'
 
 # end aliases }}}
 
@@ -90,6 +124,20 @@ function gitsync { # stash any changes, rebase from SVN and restore stash {{{
     echo "done"
 } # }}}
 
+function check_instance_health { # check iowait and cpusteal for named CFN instances {{{
+    for sys in $(jq --raw-output .Resources[].Properties.Name $1| grep -v null | grep -v vpngw | sort -R); do
+        ssh -o StrickHostKeyChecking=no $sys true > /dev/null 2>&1
+        echo System $sys $(ssh -o StrictHostKeyChecking=no $sys "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal \$2/'")
+    done
+} # }}}
+
 # end functions }}}
+
+# ETC - other stuff {{{
+
+[[ -e "/usr/local/aws/bin/aws_completer" ]] && complete -C '/usr/local/aws/bin/aws_completer' aws
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+
+# end etc }}}
 
 #eof
