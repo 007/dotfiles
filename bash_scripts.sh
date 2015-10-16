@@ -107,9 +107,11 @@ export HISTCONTROL=ignoreboth
 # infinite history
 HOSTNAME="$(hostname)"
 HOSTNAME_SHORT="${HOSTNAME%%.*}"
+mkdir -p ${HOME}/.history/$(date -u +%Y/%m/) > /dev/null 2>&1
 export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT}_$$"
-export HISTFILESIZE=50000
-export HISTSIZE=50000
+export HISTFILESIZE=500000
+export HISTSIZE=500000
+export PROMPT_COMMAND="history -a"
 
 # append to the history file, don't overwrite it
 shopt -s histappend
