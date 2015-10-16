@@ -156,6 +156,7 @@ function all-repo-stats { # show status and branch info for all repos {{{
 
 # ETC - other stuff {{{
 
+[[ -e "/etc/bash_completion" ]] && . /etc/bash_completion
 [[ -e "/usr/local/aws/bin/aws_completer" ]] && complete -C '/usr/local/aws/bin/aws_completer' aws
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
