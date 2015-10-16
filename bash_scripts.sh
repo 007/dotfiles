@@ -14,10 +14,11 @@
 
 # EXPORTS - swanky variables {{{
 
-#export SSH_ASKPASS="/usr/libexec/ssh-askpass"
 export EDITOR="vim"
 export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
 export KEY_SUFFIX="grandrounds.com"
+export GR_HOME=${HOME}/src
+export GR_USERNAME="ryan.moore"
 
 # end exports }}}
 
