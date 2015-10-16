@@ -3,12 +3,11 @@
 # PATHS - things we want to find easily {{{
 
 # add paths carefully - match on the path we're adding so we don't double-add
-[[ "$PATH" =~ .*\/usr\/local\/git\/bin.* ]] || export PATH=/usr/local/git/bin:$PATH
-[[ "$PATH" =~ .*\/usr\/local\/pear\/bin.* ]] || export PATH=/usr/local/pear/bin:$PATH
-[[ "$PATH" =~ .*\/Applications\/Xcode.app\/Contents\/Developer\/usr\/bin.* ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:$PATH
-[[ "$PATH" =~ .*\/home\/rmoore\/bin.* ]] || export PATH=/home/rmoore/bin:$PATH
-[[ "$PATH" =~ .*\/Users\/rmoore\/bin.* ]] || export PATH=/Users/rmoore/bin:$PATH
-[[ "$PATH" =~ .*\/rmoore\/.rvm\/bin.* ]] || export PATH="$PATH:/home/rmoore/.rvm/bin" # Add RVM to PATH for scripting
+[[ "$PATH" =~ /usr/local/git/bin ]] || export PATH=/usr/local/git/bin:${PATH}
+[[ "$PATH" =~ /usr/local/pear/bin ]] || export PATH=/usr/local/pear/bin:${PATH}
+[[ "$PATH" =~ /Applications/Xcode.app/Contents/Developer/usr/bin ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:${PATH}
+[[ "$PATH" =~ $HOME/bin ]] || export PATH=$HOME/bin:${PATH}
+[[ "$PATH" =~ $HOME/.rvm/bin ]] || export PATH="${PATH}:${HOME}/.rvm/bin"
 
 # end paths }}}
 
