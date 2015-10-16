@@ -79,6 +79,14 @@ function all-repo-stats { # show status and branch info for all repos {{{
   done
 } # }}}
 
+function prefix_path { # add a prefix to the path if it exists and isn't already in the path {{{
+    [[ ! "$PATH" =~ "$1" && -e "$1" ]] && export PATH="${1}:${PATH}"
+} # }}}
+
+function suffix_path { # add a suffix to the path if it exists and isn't already in the path {{{
+    [[ ! "$PATH" =~ "$1" && -e "$1" ]] && export PATH="${PATH}:${1}"
+} # }}}
+
 # end functions }}}
 
 # EXPORTS - swanky variables {{{
@@ -145,11 +153,11 @@ alias lintpuppet='find . -type f -name "*.pp" -print0 | xargs -0 puppet parser v
 # PATHS - things we want to find easily {{{
 
 # add paths carefully - match on the path we're adding so we don't double-add
-[[ "$PATH" =~ /usr/local/git/bin ]] || export PATH=/usr/local/git/bin:${PATH}
-[[ "$PATH" =~ /usr/local/pear/bin ]] || export PATH=/usr/local/pear/bin:${PATH}
-[[ "$PATH" =~ /Applications/Xcode.app/Contents/Developer/usr/bin ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:${PATH}
-[[ "$PATH" =~ $HOME/bin ]] || export PATH=$HOME/bin:${PATH}
-[[ "$PATH" =~ $HOME/.rvm/bin ]] || export PATH="${PATH}:${HOME}/.rvm/bin"
+prefix_path /usr/local/git/bin
+prefix_path /usr/local/pear/bin
+prefix_path /Applications/Xcode.app/Contents/Developer/usr/bin
+prefix_path "${HOME}/bin"
+suffix_path "${HOME}/.rvm/bin"
 
 # end paths }}}
 
