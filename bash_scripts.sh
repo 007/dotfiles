@@ -124,11 +124,19 @@ function gitsync { # stash any changes, rebase from SVN and restore stash {{{
     echo "done"
 } # }}}
 
-function check_instance_health { # check iowait and cpusteal for named CFN instances {{{
-    for sys in $(jq --raw-output .Resources[].Properties.Name $1| grep -v null | grep -v vpngw | sort -R); do
-        ssh -o StrickHostKeyChecking=no $sys true > /dev/null 2>&1
-        echo System $sys $(ssh -o StrictHostKeyChecking=no $sys "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal \$2/'")
+function aws-check-instance-health { # check iowait and cpusteal for CFN instances {{{
+    STACK_NAME=$(aws cloudformation describe-stacks | jq -r .Stacks[0].StackName)
+    echo "Fetching instances for $STACK_NAME"
+    for sys in $(aws cloudformation get-template --stack-name $STACK_NAME | jq -r .TemplateBody.Resources[].Properties.Name | grep -v null | grep -v vpngw | sort); do
+        ssh -o StrictHostKeyChecking=no $sys true > /dev/null 2>&1
+        echo $(ssh -o StrictHostKeyChecking=no $sys "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal: \$2/'") sys: $sys
     done
+} # }}}
+
+function aws-lb-health { # enumerate load balancers, then show InService or OutOfService for each instance {{{
+  for lb in $(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[].LoadBalancerName); do
+    echo "$lb $(aws elb describe-instance-health --load-balancer $lb | jq -r .InstanceStates[].State | xargs echo)"
+  done
 } # }}}
 
 function gravatar { # show a gravatar for an email {{{
