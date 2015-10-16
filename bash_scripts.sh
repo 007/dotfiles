@@ -143,6 +143,7 @@ alias lockup='light-locker-command --lock'
 alias emacs="emacs -nw"
 alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
+alias ll='ls -alF --color=auto'
 alias ..="cd .."
 alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;done"
 alias icd10='xzcat ~/icd10.txt.xz | grep'
