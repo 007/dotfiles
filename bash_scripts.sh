@@ -131,6 +131,18 @@ function check_instance_health { # check iowait and cpusteal for named CFN insta
     done
 } # }}}
 
+function gravatar { # show a gravatar for an email {{{
+  display "https://s.gravatar.com/avatar/$(echo -n "$@" | md5sum | awk '{print $1}')?s=250"
+} # }}}
+
+function all-repo-stats { # show status and branch info for all repos {{{
+  for i in *; do
+    pushd $i > /dev/null 2> /dev/null
+    echo $(pwd;git status 2> /dev/null | head -2) | paste - -
+    popd > /dev/null
+  done
+} # }}}
+
 # end functions }}}
 
 # ETC - other stuff {{{
