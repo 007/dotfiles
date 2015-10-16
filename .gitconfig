@@ -1,14 +1,11 @@
 [user]
     email = ryan.moore@grandrounds.com
     name = Ryan Moore
-
+[pull]
+    default = current
 [push]
-    default = simple
-
+    default = current
+[init]
+    templatedir = /home/rmoore/dotfiles/githooks
 [diff]
     tool = p4merge
-
-[merge]
-    keepBackup = false
-    tool = p4merge
-
