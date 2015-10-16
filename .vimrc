@@ -1,9 +1,9 @@
 " text / editing
 " set textwidth=120
 set wrapmargin=0
-set tabstop=4
-set softtabstop=4
-set shiftwidth=4
+set tabstop=2
+set softtabstop=2
+set shiftwidth=2
 set expandtab
 "set foldmethod=marker
 " use these two together for pasting tabbed content when autoindent is enabled
@@ -26,6 +26,7 @@ syntax enable
 set background=dark
 set t_Co=256
 colo slate
+colo vividchalk
 " searching
 set hlsearch
 set incsearch
