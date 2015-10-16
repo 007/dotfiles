@@ -1,77 +1,5 @@
 #!/bin/bash
 
-# PATHS - things we want to find easily {{{
-
-# add paths carefully - match on the path we're adding so we don't double-add
-[[ "$PATH" =~ /usr/local/git/bin ]] || export PATH=/usr/local/git/bin:${PATH}
-[[ "$PATH" =~ /usr/local/pear/bin ]] || export PATH=/usr/local/pear/bin:${PATH}
-[[ "$PATH" =~ /Applications/Xcode.app/Contents/Developer/usr/bin ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:${PATH}
-[[ "$PATH" =~ $HOME/bin ]] || export PATH=$HOME/bin:${PATH}
-[[ "$PATH" =~ $HOME/.rvm/bin ]] || export PATH="${PATH}:${HOME}/.rvm/bin"
-
-# end paths }}}
-
-# EXPORTS - swanky variables {{{
-
-export EDITOR="vim"
-export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
-export KEY_SUFFIX="grandrounds.com"
-export GR_HOME=${HOME}/src
-export GR_USERNAME="ryan.moore"
-
-# end exports }}}
-
-# SHELL - magic shell incantations {{{
-
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
-export HISTCONTROL=ignoreboth
-# infinite history
-HOSTNAME="$(hostname)"
-HOSTNAME_SHORT="${HOSTNAME%%.*}"
-export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT}_$$"
-export HISTFILESIZE=50000
-export HISTSIZE=50000
-
-# append to the history file, don't overwrite it
-shopt -s histappend
-
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
-shopt -s checkwinsize
-
-
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-    xterm-color) color_prompt=yes;;
-esac
-
-# end shell}}}
-
-# ALIASES - one-liners and whatnot {{{
-
-# linux has /proc, osx doesn't
-[ -a /proc ] && alias ll='ls -alF' || alias ll='ls -Gal'
-
-alias svnperl="svn st | grep '^\(M\|A\)' | awk '{print \$2;}' | grep '^\(lib\|bin\|worker\|cgi\|t\)'"
-alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
-alias fixdns='dscacheutil -flushcache'
-alias lssub='find . -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 | xargs -0 stat -F'
-alias fact="curl -s randomfunfacts.com | grep strong | cut -d\> -f5- | cut -d\< -f1"
-alias critic='svnperl | xargs perlcritic -p ~/.perlcriticrc.local --statistics --verbose "%f:%l:%c:[%p] %m\n"'
-alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
-alias lintperl="svnperl | xargs -I{} perl -cIlib {}"
-alias lockup='light-locker-command --lock'
-alias emacs="emacs -nw"
-alias grep="grep --color=auto"
-alias benice="nice -n19 ionice -c 3"
-alias ..="cd .."
-alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;done"
-alias icd10='xzcat ~/icd10.txt.xz | grep'
-alias lintpuppet='find . -type f -name "*.pp" -print0 | xargs -0 puppet parser validate && puppet-lint --fail-on-warnings modules/ || figlet FAIL'
-
-# end aliases }}}
-
 # FUNCTIONS - more complicated mojo {{{
 
 function confirm { # require "YES" to be entered for a confirmation {{{
@@ -152,6 +80,78 @@ function all-repo-stats { # show status and branch info for all repos {{{
 } # }}}
 
 # end functions }}}
+
+# EXPORTS - swanky variables {{{
+
+export EDITOR="vim"
+export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
+export KEY_SUFFIX="grandrounds.com"
+export GR_HOME=${HOME}/src
+export GR_USERNAME="ryan.moore"
+
+# end exports }}}
+
+# SHELL - magic shell incantations {{{
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+export HISTCONTROL=ignoreboth
+# infinite history
+HOSTNAME="$(hostname)"
+HOSTNAME_SHORT="${HOSTNAME%%.*}"
+export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT}_$$"
+export HISTFILESIZE=50000
+export HISTSIZE=50000
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color) color_prompt=yes;;
+esac
+
+# end shell}}}
+
+# ALIASES - one-liners and whatnot {{{
+
+# linux has /proc, osx doesn't
+[ -a /proc ] && alias ll='ls -alF' || alias ll='ls -Gal'
+
+alias svnperl="svn st | grep '^\(M\|A\)' | awk '{print \$2;}' | grep '^\(lib\|bin\|worker\|cgi\|t\)'"
+alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
+alias fixdns='dscacheutil -flushcache'
+alias lssub='find . -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 | xargs -0 stat -F'
+alias fact="curl -s randomfunfacts.com | grep strong | cut -d\> -f5- | cut -d\< -f1"
+alias critic='svnperl | xargs perlcritic -p ~/.perlcriticrc.local --statistics --verbose "%f:%l:%c:[%p] %m\n"'
+alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
+alias lintperl="svnperl | xargs -I{} perl -cIlib {}"
+alias lockup='light-locker-command --lock'
+alias emacs="emacs -nw"
+alias grep="grep --color=auto"
+alias benice="nice -n19 ionice -c 3"
+alias ..="cd .."
+alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;done"
+alias icd10='xzcat ~/icd10.txt.xz | grep'
+alias lintpuppet='find . -type f -name "*.pp" -print0 | xargs -0 puppet parser validate && puppet-lint --fail-on-warnings modules/ || figlet FAIL'
+
+# end aliases }}}
+
+# PATHS - things we want to find easily {{{
+
+# add paths carefully - match on the path we're adding so we don't double-add
+[[ "$PATH" =~ /usr/local/git/bin ]] || export PATH=/usr/local/git/bin:${PATH}
+[[ "$PATH" =~ /usr/local/pear/bin ]] || export PATH=/usr/local/pear/bin:${PATH}
+[[ "$PATH" =~ /Applications/Xcode.app/Contents/Developer/usr/bin ]] || export PATH=/Applications/Xcode.app/Contents/Developer/usr/bin:${PATH}
+[[ "$PATH" =~ $HOME/bin ]] || export PATH=$HOME/bin:${PATH}
+[[ "$PATH" =~ $HOME/.rvm/bin ]] || export PATH="${PATH}:${HOME}/.rvm/bin"
+
+# end paths }}}
 
 # ETC - other stuff {{{
 
