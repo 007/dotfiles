@@ -170,6 +170,8 @@ suffix_path "${HOME}/src/engineering/bin"
 [[ -e "/etc/bash_completion" ]] && . /etc/bash_completion
 [[ -e "/usr/local/aws/bin/aws_completer" ]] && complete -C '/usr/local/aws/bin/aws_completer' aws
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+[[ -e /usr/bin/dircolors ]] && eval $(/usr/bin/dircolors)
+[[ -e /usr/local/bin/thefuck ]] && eval $(thefuck --alias)
 
 # end etc }}}
 
