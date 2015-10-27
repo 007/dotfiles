@@ -138,6 +138,7 @@ alias fixmacdns='dscacheutil -flushcache'
 alias fact="curl -s randomfunfacts.com | grep strong | cut -d\> -f5- | cut -d\< -f1"
 alias critic='svnperl | xargs perlcritic -p ~/.perlcriticrc.local --statistics --verbose "%f:%l:%c:[%p] %m\n"'
 alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
+alias histgrep='find ~/.history/ -type f -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
 alias lintperl="svnperl | xargs -I{} perl -cIlib {}"
 alias lockup='light-locker-command --lock'
 alias emacs="emacs -nw"
