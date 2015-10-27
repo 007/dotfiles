@@ -131,12 +131,10 @@ esac
 # ALIASES - one-liners and whatnot {{{
 
 # linux has /proc, osx doesn't
-[ -a /proc ] && alias ll='ls -alF' || alias ll='ls -Gal'
+[ -a /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal'
 
-alias svnperl="svn st | grep '^\(M\|A\)' | awk '{print \$2;}' | grep '^\(lib\|bin\|worker\|cgi\|t\)'"
 alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
-alias fixdns='dscacheutil -flushcache'
-alias lssub='find . -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 | xargs -0 stat -F'
+alias fixmacdns='dscacheutil -flushcache'
 alias fact="curl -s randomfunfacts.com | grep strong | cut -d\> -f5- | cut -d\< -f1"
 alias critic='svnperl | xargs perlcritic -p ~/.perlcriticrc.local --statistics --verbose "%f:%l:%c:[%p] %m\n"'
 alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
@@ -145,11 +143,10 @@ alias lockup='light-locker-command --lock'
 alias emacs="emacs -nw"
 alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
-alias ll='ls -alF --color=auto'
 alias ..="cd .."
 alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;done"
 alias icd10='xzcat ~/icd10.txt.xz | grep'
-alias lintpuppet='find . -type f -name "*.pp" -print0 | xargs -0 puppet parser validate && puppet-lint --fail-on-warnings modules/ || figlet FAIL'
+alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 
 # end aliases }}}
 
