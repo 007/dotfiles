@@ -148,6 +148,7 @@ alias ..="cd .."
 alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;done"
 alias icd10='xzcat ~/icd10.txt.xz | grep'
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
+alias sfo='sudo ipsec down grnds-sfo;sudo ipsec stop;sleep 3;sudo ipsec start;sleep 3;sudo ipsec up grnds-sfo'
 
 # end aliases }}}
 
