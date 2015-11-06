@@ -2,6 +2,11 @@
 
 # FUNCTIONS - more complicated mojo {{{
 
+function batstatX { # show battery status (% charged and % capacity) {{{
+   DEVICE="BAT${1}"
+   echo "$DEVICE:$(upower -i /org/freedesktop/UPower/devices/battery_${DEVICE} | grep -E "percentage|capacity" | perl -pe "s/\s+/ /g" | paste - -)"
+} # }}}
+
 function confirm { # require "YES" to be entered for a confirmation {{{
   read -t 60 -p "$1 [yes/NO] : "
   if [ "$REPLY" == "YES" ] ; then
@@ -149,6 +154,7 @@ alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;do
 alias icd10='xzcat ~/icd10.txt.xz | grep'
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 alias sfo='sudo ipsec down grnds-sfo;sudo ipsec stop;sleep 3;sudo ipsec start;sleep 3;sudo ipsec up grnds-sfo'
+alias batstat='batstatX 0;batstatX 1'
 
 # end aliases }}}
 
