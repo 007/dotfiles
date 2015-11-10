@@ -74,6 +74,8 @@ function gravatar { # show a gravatar for an email {{{
 function all-repo-stats { # show status and branch info for all repos {{{
   for i in *; do
     pushd $i > /dev/null 2> /dev/null
+    # if we're on a non-feature branch, revert to master
+    git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     echo $(pwd;git status 2> /dev/null | head -2) | paste - -
     popd > /dev/null
   done
