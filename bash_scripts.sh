@@ -151,6 +151,7 @@ alias devsrc="for i in \$(find ~/src/engineering/bash -type f); do source \$i;do
 alias icd10='xzcat ~/icd10.txt.xz | grep'
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 alias sfo='sudo ipsec down grnds-sfo;sudo ipsec stop;sleep 3;sudo ipsec start;sleep 3;sudo ipsec up grnds-sfo'
+alias gitgc='git repack -a -d -f --depth=1000 --window=500'
 
 # end aliases }}}
 
