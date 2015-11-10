@@ -57,8 +57,7 @@ function aws-check-instance-health { # check iowait and cpusteal for CFN instanc
     STACK_NAME=$(aws cloudformation describe-stacks | jq -r .Stacks[0].StackName)
     echo "Fetching instances for $STACK_NAME"
     for sys in $(aws cloudformation get-template --stack-name $STACK_NAME | jq -r .TemplateBody.Resources[].Properties.Name | grep -v null | grep -v vpngw | sort); do
-        ssh -o StrictHostKeyChecking=no $sys true > /dev/null 2>&1
-        echo $(ssh -o StrictHostKeyChecking=no $sys "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal: \$2/'") sys: $sys
+        echo $(ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $sys "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal: \$2/'") sys: $sys
     done
 } # }}}
 
