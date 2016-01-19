@@ -81,6 +81,17 @@ function all-repo-stats { # show status and branch info for all repos {{{
   done
 } # }}}
 
+function all-repo-update { # git update all repos {{{
+  for i in *; do
+    pushd $i > /dev/null 2> /dev/null
+    echo $(pwd)
+    # if we're on a non-feature branch, revert to master
+    git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
+    git pull
+    popd > /dev/null
+  done
+} # }}}
+
 function prefix_path { # add a prefix to the path if it exists and isn't already in the path {{{
     [[ ! "$PATH" =~ "$1" && -e "$1" ]] && export PATH="${1}:${PATH}"
 } # }}}
