@@ -1,11 +1,16 @@
 [user]
-    email = ryan.moore@grandrounds.com
-    name = Ryan Moore
+	email = ryan.moore@grandrounds.com
+	name = Ryan Moore
+	signingkey = ryan.moore@grandrounds.com
 [pull]
-    default = current
+	default = current
 [push]
-    default = current
+	default = current
 [init]
-    templatedir = /home/rmoore/dotfiles/githooks
+	templatedir = /home/rmoore/dotfiles/githooks
 [diff]
-    tool = p4merge
+	tool = p4merge
+[branch]
+	autosetuprebase = always
+[tar "tar.xz"]
+	command = xz -9evvc
