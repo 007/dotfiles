@@ -72,8 +72,8 @@ function gravatar { # show a gravatar for an email {{{
 } # }}}
 
 function all-repo-stats { # show status and branch info for all repos {{{
-  for i in *; do
-    pushd $i > /dev/null 2> /dev/null
+  for i in */.git/; do
+    pushd ${i%.git/} > /dev/null 2> /dev/null
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     echo $(pwd;git status 2> /dev/null | head -2) | paste - -
@@ -82,12 +82,22 @@ function all-repo-stats { # show status and branch info for all repos {{{
 } # }}}
 
 function all-repo-update { # git update all repos {{{
-  for i in *; do
-    pushd $i > /dev/null 2> /dev/null
+  for i in */.git/; do
+    pushd ${i%.git/} > /dev/null 2> /dev/null
     echo $(pwd)
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     git pull
+    popd > /dev/null
+  done
+} # }}}
+
+function all-repo-clean { # clean out merged branches {{{
+  for i in */.git/; do
+    pushd ${i%.git/} > /dev/null 2> /dev/null
+    echo $(pwd)
+    git pull
+    git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$'
     popd > /dev/null
   done
 } # }}}
