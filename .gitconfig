@@ -14,3 +14,25 @@
 	autosetuprebase = always
 [tar "tar.xz"]
 	command = xz -9evvc
+[color "diff"]
+  meta = yellow bold
+  commit = green bold
+  frag = magenta bold
+  old = red bold
+  new = green bold
+  whitespace = red bold reverse
+[color "diff-highlight"]
+  oldNormal = red bold
+  oldHighlight = "red bold 52"
+  newNormal = "green bold"
+  newHighlight = "green bold 22"
+[color "branch"]
+  current = yellow bold reverse
+  local = yellow bold
+  remote = green
+[color "status"]
+  added = green bold
+  changed = yellow bold
+  header = black bold
+  untracked = yellow
+
