@@ -136,6 +136,7 @@ export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT
 export HISTFILESIZE=500000
 export HISTSIZE=500000
 export PROMPT_COMMAND="history -a"
+[ -a ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg -q -d ~/secrets.sh.gpg)
 
 # append to the history file, don't overwrite it
 shopt -s histappend
