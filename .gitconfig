@@ -10,6 +10,8 @@
 	templatedir = /home/rmoore/dotfiles/githooks
 [diff]
 	tool = p4merge
+[merge]
+	tool = p4merge
 [branch]
 	autosetuprebase = always
 [tar "tar.xz"]
