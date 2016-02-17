@@ -121,6 +121,9 @@ export KEY_SUFFIX="grandrounds.com"
 export GR_HOME=${HOME}/src
 export GR_USERNAME="ryan.moore"
 
+# secrets, but only for interactive shells and only if we have secrets
+/bin/grep -q i <<< $- && [ -a ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
+
 # end exports }}}
 
 # SHELL - magic shell incantations {{{
@@ -136,7 +139,6 @@ export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT
 export HISTFILESIZE=500000
 export HISTSIZE=500000
 export PROMPT_COMMAND="history -a"
-[ -a ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg -q -d ~/secrets.sh.gpg)
 
 # append to the history file, don't overwrite it
 shopt -s histappend
