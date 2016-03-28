@@ -83,12 +83,13 @@ function all-repo-stats { # show status and branch info for all repos {{{
 
 function all-repo-update { # git update all repos {{{
   for i in */.git/; do
+    echo ""
     pushd ${i%.git/} > /dev/null 2> /dev/null
     echo $(pwd)
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     git pull
-    [ -a Gemfile ] && bundle | grep -v ^Using
+    [ -a Gemfile ] && gem install bundler && bundle | grep -v ^Using
     popd > /dev/null
   done
 } # }}}
