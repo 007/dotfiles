@@ -1,8 +1,10 @@
 #!/bin/bash
 function batstatX { # show battery status (% charged and % capacity) {{{
    DEVICE="BAT${1}"
-   echo "$DEVICE:$(upower -i /org/freedesktop/UPower/devices/battery_${DEVICE} | grep -E "percentage|capacity" | perl -pe "s/\s+/ /g" | paste - -)"
+   echo -n "$DEVICE:$(upower -i /org/freedesktop/UPower/devices/battery_${DEVICE} | grep -E "percentage|capacity" | perl -pe "s/\s+/ /g" | paste -d\  - -)"
 } # }}}
 
+echo -n "$(date) "
 batstatX 0
 batstatX 1
+echo ""
