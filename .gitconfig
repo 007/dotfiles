@@ -1,7 +1,7 @@
 [user]
 	email = ryan.moore@grandrounds.com
 	name = Ryan Moore
-	signingkey = ryan.moore@grandrounds.com
+	signingkey = B4CE8D591BB3F24DE31D71F7065AFA10C1FE49CC
 [pull]
 	default = current
 [push]
