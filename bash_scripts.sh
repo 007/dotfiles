@@ -179,6 +179,7 @@ alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + 
 alias sfo='sudo ipsec down grnds-sfo;sudo ipsec stop;sleep 3;sudo ipsec start;sleep 3;sudo ipsec up grnds-sfo'
 alias gitgc='git repack -a -d -f --depth=1000 --window=500'
 alias savepower='sudo powertop --auto-tune;xinput disable 9;sudo tee /proc/acpi/ibm/bluetooth <<< disabled >/dev/null;sudo tee /sys/class/backlight/intel_backlight/brightness <<< 426 >/dev/null'
+alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
 
 # end aliases }}}
 
