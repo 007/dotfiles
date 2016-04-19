@@ -78,7 +78,12 @@ function all-repo-stats { # show status and branch info for all repos {{{
     pushd ${i%.git/} > /dev/null 2> /dev/null
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
-    echo $(pwd;git status 2> /dev/null | head -2) | paste - -
+    if [ "$(git status --porcelain)" == "" ] ; then
+      STATUS_COLOR="\e[1;32m"
+    else
+      STATUS_COLOR="\e[1;31m"
+    fi
+    echo -e ${STATUS_COLOR} $(pwd;git status 2> /dev/null | head -2) ${COLOR_RESET} | paste - -
     popd > /dev/null
   done
 } # }}}
@@ -123,6 +128,7 @@ export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
 export KEY_SUFFIX="grandrounds.com"
 export GR_HOME=${HOME}/src
 export GR_USERNAME="ryan.moore"
+export COLOR_RESET="\e[0m"
 
 # secrets, but only for interactive shells and only if we have secrets
 /bin/grep -q i <<< $- && [ -a ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
@@ -149,7 +155,6 @@ shopt -s histappend
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
-
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
