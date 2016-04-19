@@ -104,10 +104,11 @@ function all-repo-update { # git update all repos {{{
 function all-repo-clean { # clean out merged branches {{{
   for i in ${GR_HOME}/*/.git/; do
     pushd ${i%.git/} > /dev/null 2> /dev/null
-    echo $(pwd)
-    git pull
-    git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$'
+    echo "pushd $(pwd)"
+    git pull | grep -v 'up.to.date'
+    git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$' | sed 's/^/git branch -d/g'
     popd > /dev/null
+    echo "popd"
   done
 } # }}}
 
