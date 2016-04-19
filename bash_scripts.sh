@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # FUNCTIONS - more complicated mojo {{{
-
+function rekey-prod-robot {
+  gpg -qd ${GR_HOME}/engineering/ssh/private/github-grh-drone-id-rsa-honesty.pem.gpg | gpg --quiet --symmetric --armor --cipher-algo AES256 -o $(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg --passphrase $(grep 'echo robot_password=' original.json | head -1 | perl -pe 's/.*echo robot_password=(.*)\\n",/\1/') --no-use-agent && aws s3 cp $(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg s3://grnds-production-robot/
+}
 
 function confirm { # require "YES" to be entered for a confirmation {{{
   read -t 60 -p "$1 [yes/NO] : "
