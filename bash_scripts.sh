@@ -96,7 +96,10 @@ function all-repo-update { # git update all repos {{{
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     git pull
-    [ -a Gemfile ] && gem install bundler && bundle | grep -v ^Using
+    if [ -a Gemfile ] ; then
+      ping -c1 -w1 rubygems.org > /dev/null && gem install bundler && bundle | grep -v ^Using
+    fi
+    sleep 3
     popd > /dev/null
   done
 } # }}}
