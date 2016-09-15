@@ -2,6 +2,8 @@
 	email = ryan.moore@grandrounds.com
 	name = Ryan Moore
 	signingkey = B4CE8D591BB3F24DE31D71F7065AFA10C1FE49CC
+[core]
+  abbrev=16
 [pull]
 	default = current
 [push]
@@ -10,6 +12,7 @@
 	templatedir = /home/rmoore/dotfiles/githooks
 [diff]
 	tool = p4merge
+	algorithm = patience
 [merge]
 	tool = p4merge
 [branch]
