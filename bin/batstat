@@ -4,7 +4,7 @@ function batstatX { # show battery status (% charged and % capacity) {{{
    echo -n "$DEVICE:$(upower -i /org/freedesktop/UPower/devices/battery_${DEVICE} | grep -E "percentage|capacity" | perl -pe "s/\s+/ /g" | paste -d\  - -)"
 } # }}}
 
-echo -n "$(date) "
+echo -n "$(date) $(cat /proc/loadavg) "
 batstatX 0
 batstatX 1
 echo ""
