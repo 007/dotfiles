@@ -109,7 +109,9 @@ function all-repo-clean { # clean out merged branches {{{
     pushd ${i%.git/} > /dev/null 2> /dev/null
     echo "pushd $(pwd)"
     git pull | grep -v 'up.to.date'
+    git fetch --prune
     git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$' | sed 's/^/git branch -d/g'
+    echo "git repack -a -d -f --depth=1000 --window=500"
     popd > /dev/null
     echo "popd"
   done
