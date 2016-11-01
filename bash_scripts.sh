@@ -79,7 +79,13 @@ function all-repo-stats { # show status and branch info for all repos {{{
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     if [ "$(git status --porcelain)" == "" ] ; then
-      STATUS_COLOR="\e[1;32m"
+      if git status 2>/dev/null | head -1 | grep -Pq 'On branch master'; then
+        # clean master branch
+        STATUS_COLOR="\e[1;32m"
+      else
+        # clean branch, but not master
+        STATUS_COLOR="\e[1;33m"
+      fi
     else
       STATUS_COLOR="\e[1;31m"
     fi
