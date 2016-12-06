@@ -206,6 +206,7 @@ alias savepower='sudo powertop --auto-tune;xinput disable 9;sudo tee /proc/acpi/
 alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
 alias prodincexstat='mysql --login-path=prod-primary -e "SELECT * FROM delayed_jobs WHERE queue = \"reports\" AND handler LIKE \"%id: 27%\"\G" jarvis_production'
 alias prodmysqlstat='mysql --login-path=prod-primary -e "SHOW ENGINE INNODB STATUS\G" | grep -C2 TRANSACTION'
+alias qreset='echo -e "\0033\0143"'
 
 # end aliases }}}
 
