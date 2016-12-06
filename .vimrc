@@ -16,7 +16,7 @@ set laststatus=2
 set statusline=
 set statusline+=\ %f\ %m\ %r
 set statusline+=%=
-set statusline+=%v:%l/%L
+set statusline+=\ %v:%l/%L
 set statusline+=\ 
 syntax on
 syntax enable
