@@ -131,6 +131,11 @@ function suffix_path { # add a suffix to the path if it exists and isn't already
     [[ ! "$PATH" =~ "$1" && -e "$1" ]] && export PATH="${PATH}:${1}"
 } # }}}
 
+function gpgrep {
+  find . -type f -name '*.gpg' -exec sh -c "gpg -q -d --no-tty \"{}\" | grep -InH --color=auto --label=\"{}\" $@" \;
+}
+
+
 # end functions }}}
 
 # EXPORTS - swanky variables {{{
