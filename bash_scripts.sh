@@ -207,6 +207,8 @@ alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active fa
 alias prodincexstat='mysql --login-path=prod-primary -e "SELECT * FROM delayed_jobs WHERE queue = \"reports\" AND handler LIKE \"%id: 27%\"\G" jarvis_production'
 alias prodmysqlstat='mysql --login-path=prod-primary -e "SHOW ENGINE INNODB STATUS\G" | grep -C2 TRANSACTION'
 alias qreset='echo -e "\0033\0143"'
+alias lrmax='lrzip -vv -Uz -N 19 -L 9'
+alias xzmax='xz -9evv --lzma2=dict=128MiB,lc=4,lp=0,pb=2,mode=normal,nice=273,mf=bt4,depth=1024'
 
 # end aliases }}}
 
