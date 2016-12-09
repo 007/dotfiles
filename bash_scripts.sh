@@ -147,6 +147,9 @@ export GR_HOME=${HOME}/src
 export GR_USERNAME="ryan.moore"
 export COLOR_RESET="\e[0m"
 
+# need gpg-agent ssh ability
+export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
+
 # secrets, but only for interactive shells and only if we have secrets
 /bin/grep -q i <<< $- && [ -a ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
 
