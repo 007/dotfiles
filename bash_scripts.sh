@@ -224,6 +224,7 @@ prefix_path /usr/local/git/bin
 prefix_path /usr/local/pear/bin
 prefix_path /Applications/Xcode.app/Contents/Developer/usr/bin
 prefix_path "${HOME}/bin"
+prefix_path "${HOME}/anaconda3/bin"
 prefix_path "${HOME}/.rvm/bin"
 suffix_path "${HOME}/src/engineering/bin"
 
