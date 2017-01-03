@@ -115,13 +115,15 @@ function all-repo-update { # git update all repos {{{
 function all-repo-clean { # clean out merged branches {{{
   for i in ${GR_HOME}/*/.git/; do
     pushd ${i%.git/} > /dev/null 2> /dev/null
-    echo "pushd $(pwd)"
+    echo $(pwd)
     git pull | grep -v 'up.to.date'
     git fetch --prune
-    git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$' | sed 's/^/git branch -d/g'
-    echo "git repack -a -d -f --depth=1000 --window=500"
+    git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$' | xargs --no-run-if-empty git branch -d
+    git repack -a -d -f --depth=1000 --window=500
+    if [ -e Gemfile -a -e .ruby-gemset ] ; then
+      rvm --force gemset empty;cd .;gem install bundler && bundle
+    fi
     popd > /dev/null
-    echo "popd"
   done
 } # }}}
 
