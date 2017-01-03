@@ -107,7 +107,6 @@ function all-repo-update { # git update all repos {{{
     if [ -e Gemfile ] ; then
       ping -c1 -w1 rubygems.org > /dev/null && gem install bundler && bundle | grep -v ^Using
     fi
-    sleep 3
     popd > /dev/null
   done
 } # }}}
