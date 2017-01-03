@@ -104,7 +104,7 @@ function all-repo-update { # git update all repos {{{
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     git pull
     popd
-    if [ -a Gemfile ] ; then
+    if [ -e Gemfile ] ; then
       ping -c1 -w1 rubygems.org > /dev/null && gem install bundler && bundle | grep -v ^Using
     fi
     sleep 3
@@ -153,7 +153,7 @@ export COLOR_RESET="\e[0m"
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
 
 # secrets, but only for interactive shells and only if we have secrets
-/bin/grep -q i <<< $- && [ -a ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
+/bin/grep -q i <<< $- && [ -e ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
 
 # end exports }}}
 
@@ -188,7 +188,7 @@ esac
 # ALIASES - one-liners and whatnot {{{
 
 # linux has /proc, osx doesn't
-[ -a /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal'
+[ -e /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal'
 
 alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
 alias fixmacdns='dscacheutil -flushcache'
