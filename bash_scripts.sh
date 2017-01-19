@@ -214,7 +214,7 @@ alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + 
 alias sfo='sudo ipsec down grnds-sfo;sudo ipsec stop;sleep 3;sudo ipsec start;sleep 3;sudo ipsec up grnds-sfo'
 alias gitgc='git repack -a -d -f --depth=1000 --window=500'
 alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
-alias prodincexstat='mysql --login-path=prod-primary -e "SELECT * FROM delayed_jobs WHERE queue = \"reports\" AND handler LIKE \"%id: 27\\n%\"\G" jarvis_production'
+alias prodincexstat='mysql --login-path=prod-primary jarvis_production -e "SELECT * FROM delayed_jobs WHERE queue = \"reports\" AND handler LIKE \"%id: 27\\n%\"\G"'
 alias prodmysqlstat='mysql --login-path=prod-primary -e "SHOW ENGINE INNODB STATUS\G" | grep -C2 TRANSACTION'
 alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
