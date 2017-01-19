@@ -2,7 +2,7 @@
 
 # FUNCTIONS - more complicated mojo {{{
 function rekey-prod-robot {
-  gpg -qd ${GR_HOME}/engineering/ssh/private/github-grh-drone-id-rsa-honesty.pem.gpg | gpg --quiet --symmetric --armor --cipher-algo AES256 -o $(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg --passphrase $(grep 'echo robot_password=' original.json | head -1 | perl -pe 's/.*echo robot_password=(.*)\\n",/\1/') --no-use-agent && aws s3 cp $(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg s3://grnds-production-robot/
+  gpg -qd "${GR_HOME}/engineering/ssh/private/github-grh-drone-id-rsa-honesty.pem.gpg" | gpg --quiet --symmetric --armor --cipher-algo AES256 -o "$(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg --passphrase $(grep 'echo robot_password=' original.json | head -1 | perl -pe 's/.*echo robot_password=(.*)\\n",/\1/')" --no-use-agent && aws s3 cp "$(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg" s3://grnds-production-robot/
 }
 
 function confirm { # require "YES" to be entered for a confirmation {{{
@@ -12,12 +12,12 @@ function confirm { # require "YES" to be entered for a confirmation {{{
     return 0
   else
     echo "NO"
-    return -1
+    return 1
   fi
 } # }}}
 
 function smore { # syntax hilighting more command {{{
-for S in $*; do source-highlight -i $S --out-format=esc -o STDOUT|more -r;done
+for S in "$@"; do source-highlight -i "$S" --out-format=esc -o STDOUT|more -r;done
 } # }}}
 
 function sniff_basics { # fix basic errors found in sniff {{{
@@ -58,14 +58,14 @@ function gitsync { # stash any changes, rebase from SVN and restore stash {{{
 function aws-check-instance-health { # check iowait and cpusteal for CFN instances {{{
     STACK_NAME=$(aws cloudformation describe-stacks | jq -r .Stacks[0].StackName)
     echo "Fetching instances for $STACK_NAME"
-    for sys in $(aws cloudformation get-template --stack-name $STACK_NAME | jq -r .TemplateBody.Resources[].Properties.Name | grep -v null | grep -v vpngw | sort); do
-        echo $(ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $sys "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal: \$2/'") sys: $sys
+    for sys in $(aws cloudformation get-template --stack-name "$STACK_NAME" | jq -r .TemplateBody.Resources[].Properties.Name | grep -v null | grep -v vpngw | sort); do
+        echo "$(ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$sys" "top -b -n5 -d0.1 | grep %Cpu | tail -1 | perl -pe 's/.*(\d+\.\d) wa,.*(\d+\.\d) st/wait: \$1 steal: \$2/'") sys: $sys"
     done
 } # }}}
 
 function aws-lb-health { # enumerate load balancers, then show InService or OutOfService for each instance {{{
   for lb in $(aws elb describe-load-balancers | jq -r .LoadBalancerDescriptions[].LoadBalancerName); do
-    echo "$lb $(aws elb describe-instance-health --load-balancer $lb | jq -r .InstanceStates[].State | xargs echo)"
+    echo "$lb $(aws elb describe-instance-health --load-balancer "$lb" | jq -r .InstanceStates[].State | xargs echo)"
   done
 } # }}}
 
@@ -75,7 +75,7 @@ function gravatar { # show a gravatar for an email {{{
 
 function all-repo-stats { # show status and branch info for all repos {{{
   for i in ${GR_HOME}/*/.git/; do
-    pushd ${i%.git/} > /dev/null 2> /dev/null
+    pushd "${i%.git/}" > /dev/null 2> /dev/null
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     if [ "$(git status --porcelain)" == "" ] ; then
@@ -89,7 +89,7 @@ function all-repo-stats { # show status and branch info for all repos {{{
     else
       STATUS_COLOR="\e[1;31m"
     fi
-    echo -e ${STATUS_COLOR} $(pwd;git status 2> /dev/null | head -2) ${COLOR_RESET} | paste - -
+    echo -e "${STATUS_COLOR}" "$(pwd;git status 2> /dev/null | head -2)" "${COLOR_RESET}" | paste - -
     popd > /dev/null
   done
 } # }}}
@@ -97,9 +97,9 @@ function all-repo-stats { # show status and branch info for all repos {{{
 function all-repo-update { # git update all repos {{{
   for i in ${GR_HOME}/*/.git/; do
     echo ""
-    pushd ${i%.git/} > /dev/null 2> /dev/null
-    pushd ${i%.git/} > /dev/null 2> /dev/null
-    echo $(pwd)
+    pushd "${i%.git/}" > /dev/null 2> /dev/null
+    pushd "${i%.git/}" > /dev/null 2> /dev/null
+    pwd
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     git pull
@@ -113,8 +113,8 @@ function all-repo-update { # git update all repos {{{
 
 function all-repo-clean { # clean out merged branches {{{
   for i in ${GR_HOME}/*/.git/; do
-    pushd ${i%.git/} > /dev/null 2> /dev/null
-    echo $(pwd)
+    pushd "${i%.git/}" > /dev/null 2> /dev/null
+    pwd
     git pull | grep -v 'up.to.date'
     git fetch --prune
     git branch --merged | grep -v '^\*' | grep -v 'rc/branch/'| grep -vE '^\s+master\s*$' | grep -vE '^\s+gh-pages\s*$' | xargs --no-run-if-empty git branch -d
@@ -127,21 +127,21 @@ function all-repo-clean { # clean out merged branches {{{
 } # }}}
 
 function prefix_path { # add a prefix to the path if it exists and isn't already in the path {{{
-    [[ ! "$PATH" =~ "$1" && -e "$1" ]] && export PATH="${1}:${PATH}"
+    [[ ! "$PATH" =~ $1 && -e "$1" ]] && export PATH="${1}:${PATH}"
 } # }}}
 
 function suffix_path { # add a suffix to the path if it exists and isn't already in the path {{{
-    [[ ! "$PATH" =~ "$1" && -e "$1" ]] && export PATH="${PATH}:${1}"
+    [[ ! "$PATH" =~ $1 && -e "$1" ]] && export PATH="${PATH}:${1}"
 } # }}}
 
 function gpgrep {
-  find . -type f -name '*.gpg' -exec sh -c "gpg -q -d --no-tty \"{}\" | grep -InH --color=auto --label=\"{}\" $@" \;
+  find . -type f -name '*.gpg' -exec sh -c "gpg -q -d --no-tty \"{}\" | grep -InH --color=auto --label=\"{}\" $*" \;
 }
 
 function savepower {
   sudo powertop --auto-tune
-  TOUCHSCREEN_ID=$(xinput list | grep Touchscreen | perl -pe 's/.*id=(\d+).*/\1/'
-  xinput disable ${TOUCHSCREEN_ID}
+  TOUCHSCREEN_ID=$(xinput list | grep Touchscreen | perl -pe 's/.*id=(\d+).*/\1/')
+  xinput disable "${TOUCHSCREEN_ID}"
   sudo tee /proc/acpi/ibm/bluetooth <<< disabled >/dev/null
   HALFBRIGHT=$(( $(cat /sys/class/backlight/intel_backlight/max_brightness) / 2))
   sudo tee /sys/class/backlight/intel_backlight/brightness <<< ${HALFBRIGHT} >/dev/null
@@ -174,8 +174,9 @@ export HISTCONTROL=ignoreboth
 # infinite history
 HOSTNAME="$(hostname)"
 HOSTNAME_SHORT="${HOSTNAME%%.*}"
-mkdir -p ${HOME}/.history/$(date -u +%Y/%m/) > /dev/null 2>&1
-export HISTFILE="${HOME}/.history/$(date -u +%Y/%m/%d.%H.%M.%S)_${HOSTNAME_SHORT}_$$"
+mkdir -p "${HOME}/.history/$(date -u +%Y/%m/)" > /dev/null 2>&1
+SESSIONPREFIX=$(date -u +%Y/%m/%d.%H.%M.%S)
+export HISTFILE="${HOME}/.history/${SESSIONPREFIX}_${HOSTNAME_SHORT}_$$"
 export HISTFILESIZE=500000
 export HISTSIZE=500000
 export PROMPT_COMMAND="history -a"
@@ -187,16 +188,12 @@ shopt -s histappend
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-    xterm-color) color_prompt=yes;;
-esac
-
 # end shell}}}
 
 # ALIASES - one-liners and whatnot {{{
 
 # linux has /proc, osx doesn't
+# shellcheck disable=SC2015
 [ -e /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal'
 
 alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
@@ -222,7 +219,7 @@ alias prodmysqlstat='mysql --login-path=prod-primary -e "SHOW ENGINE INNODB STAT
 alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
 alias xzmax='xz -9evv --lzma2=dict=128MiB,lc=4,lp=0,pb=2,mode=normal,nice=273,mf=bt4,depth=1024'
-alias startipy="screen -S jupyter -Q select . || screen -dmS jupyter jupyter notebook --notebook-dir=${HOME}/src/personal/carnd"
+alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter notebook --notebook-dir=${HOME}/src/personal/carnd'
 
 # end aliases }}}
 
@@ -244,7 +241,9 @@ suffix_path "${HOME}/src/engineering/bin"
 [[ -e "/etc/bash_completion" ]] && . /etc/bash_completion
 [[ -e "/usr/share/awscli/aws_completer" ]] && complete -C '/usr/share/awscli/aws_completer' aws
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+# shellcheck disable=SC2046
 [[ -e /usr/bin/dircolors ]] && eval $(/usr/bin/dircolors)
+# shellcheck disable=SC2046
 [[ -e /usr/local/bin/thefuck ]] && eval $(thefuck --alias)
 
 # end etc }}}
