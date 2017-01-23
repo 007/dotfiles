@@ -94,7 +94,7 @@ function all-repo-stats { # show status and branch info for all repos {{{
     else
       STATUS_COLOR="\e[1;31m"
     fi
-    echo -e "${STATUS_COLOR}" "$(pwd;git status 2> /dev/null | head -2)" "${COLOR_RESET}" | paste - -
+    echo -e "${STATUS_COLOR}" "$(pwd;git status 2> /dev/null | head -2)" "${COLOR_RESET}" | paste -d\  - - -
     popd > /dev/null
   done
 } # }}}
