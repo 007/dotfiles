@@ -17,7 +17,12 @@ function confirm { # require "YES" to be entered for a confirmation {{{
 } # }}}
 
 function smore { # syntax hilighting more command {{{
-for S in "$@"; do source-highlight -i "$S" --out-format=esc -o STDOUT|more -r;done
+  if [ "$(date --date='8 hours ago' +%H)" -gt 12 ] ; then
+    style='paraiso-dark'
+  else
+    style='rrt'
+  fi
+  for S in "$@"; do pygmentize -O style=$style -f terminal256 "$S" | less -R;done
 } # }}}
 
 function sniff_basics { # fix basic errors found in sniff {{{
