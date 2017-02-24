@@ -370,12 +370,16 @@ function! s:readable_controller_name(...) dict abort
     return s:sub(f,'.*<app/mailers/(.{-})\.rb$','\1')
   elseif f =~ '\<app/apis/.*_api\.rb$'
     return s:sub(f,'.*<app/apis/(.{-})_api\.rb$','\1')
+  elseif f =~ '\<app/jobs/.*\.rb$'
+    return s:sub(f,'.*<app/jobs/(.{-})%(_job)=\.rb$','\1')
   elseif f =~ '\<test/\%(functional\|controllers\)/.*_test\.rb$'
     return s:sub(f,'.*<test/%(functional|controllers)/(.{-})%(_controller)=_test\.rb$','\1')
   elseif f =~ '\<test/\%(unit/\)\?helpers/.*_helper_test\.rb$'
     return s:sub(f,'.*<test/%(unit/)?helpers/(.{-})_helper_test\.rb$','\1')
   elseif f =~ '\<spec/controllers/.*_spec\.rb$'
     return s:sub(f,'.*<spec/controllers/(.{-})%(_controller)=_spec\.rb$','\1')
+  elseif f =~ '\<spec/jobs/.*_spec\.rb$'
+    return s:sub(f,'.*<spec/jobs/(.{-})%(_job)=_spec\.rb$','\1')
   elseif f =~ '\<spec/helpers/.*_helper_spec\.rb$'
     return s:sub(f,'.*<spec/helpers/(.{-})_helper_spec\.rb$','\1')
   elseif f =~ '\<spec/views/.*/\w\+_view_spec\.rb$'
@@ -723,6 +727,8 @@ function! s:readable_calculate_file_type() dict abort
     let r = "helper"
   elseif f =~ '\<app/mailers/.*\.rb'
     let r = "mailer"
+  elseif f =~ '\<app/jobs/.*\.rb'
+    let r = "job"
   elseif f =~ '\<app/models/'
     let top = "\n".join(s:readfile(full_path,50),"\n")
     let class = matchstr(top,"\n".'class\s\+\S\+\s*<\s*\<\zs\S\+\>')
@@ -744,7 +750,7 @@ function! s:readable_calculate_file_type() dict abort
     let r = "view-layout-" . e
   elseif f =~ '\<app/views\>.*\.'
     let r = "view-" . e
-  elseif f =~ '\<test/\%(unit\|models\|helpers\)/.*_test\.rb$'
+  elseif f =~ '\<test/\%(unit\|models\|helpers\|jobs\)/.*_test\.rb$'
     let r = "test-unit"
   elseif f =~ '\<test/\%(functional\|controllers\)/.*_test\.rb$'
     let r = "test-functional"
@@ -1391,7 +1397,7 @@ function! s:readable_default_rake_task(...) dict abort
     if empty(test)
       return '--tasks'
     elseif test =~# '^test\>' && self.app().has('rails5')
-      return 'test '.s:rquote(with_line)
+      return 'test TEST='.s:rquote(with_line)
     elseif test =~# '^test\>'
       let opts = ''
       if test ==# self.name()
@@ -1400,7 +1406,7 @@ function! s:readable_default_rake_task(...) dict abort
           let opts = ' TESTOPTS=-n'.method
         endif
       endif
-      if test =~# '^test/\%(unit\|models\)\>'
+      if test =~# '^test/\%(unit\|models\|jobs\)\>'
         return 'test:units TEST='.s:rquote(test).opts
       elseif test =~# '^test/\%(functional\|controllers\)\>'
         return 'test:functionals TEST='.s:rquote(test).opts
@@ -1647,7 +1653,7 @@ function! s:app_generators() dict abort
       let paths += map(gems, 'v:val . "/lib"')
       let builtin = []
     else
-      let builtin = ['assets', 'controller', 'generator', 'helper', 'integration_test', 'jbuilder', 'jbuilder_scaffold_controller', 'mailer', 'migration', 'model', 'resource', 'scaffold', 'scaffold_controller', 'task']
+      let builtin = ['assets', 'controller', 'generator', 'helper', 'integration_test', 'jbuilder', 'jbuilder_scaffold_controller', 'mailer', 'migration', 'model', 'resource', 'scaffold', 'scaffold_controller', 'task', 'job']
     endif
     let generators = s:split(globpath(s:pathjoin(paths), 'generators/**/*_generator.rb'))
     call map(generators, 's:sub(v:val,"^.*[\\\\/]generators[\\\\/]\\ze.","")')
@@ -2994,8 +3000,9 @@ endfunction
 function! s:specEdit(cmd,...) abort
   let describe = s:sub(s:sub(rails#camelize(a:0 ? a:1 : ''), '^[^:]*::', ''), '!.*', '')
   return rails#buffer().open_command(a:cmd, a:0 ? a:1 : '', 'spec', [
-        \ {'pattern': 'spec/*_spec.rb', 'template': "require 'spec_helper'\n\ndescribe ".describe." do\nend"},
-        \ {'pattern': 'spec/spec_helper.rb'}])
+        \ {'pattern': 'spec/*_spec.rb', 'template': "require 'rails_helper'\n\ndescribe ".describe." do\nend"},
+        \ {'pattern': 'spec/spec_helper.rb'},
+        \ {'pattern': 'spec/rails_helper.rb'}])
 endfunction
 
 " }}}1
@@ -3715,6 +3722,7 @@ function! s:app_user_classes() dict
     call map(controllers,'v:val == "application" ? v:val."_controller" : v:val')
     let classes =
           \ self.relglob("app/models/","**/*",".rb") +
+          \ self.relglob("app/jobs/","**/*",".rb") +
           \ controllers +
           \ self.relglob("app/helpers/","**/*",".rb") +
           \ self.relglob("lib/","**/*",".rb")
@@ -3757,8 +3765,8 @@ function! rails#buffer_syntax()
       if buffer.type_name() ==# 'model' || buffer.type_name('model-record')
         syn keyword rubyRailsARMethod default_scope enum named_scope scope serialize store
         syn keyword rubyRailsARAssociationMethod belongs_to has_one has_many has_and_belongs_to_many composed_of accepts_nested_attributes_for
-        syn keyword rubyRailsARCallbackMethod before_create before_destroy before_save before_update before_validation before_validation_on_create before_validation_on_update
-        syn keyword rubyRailsARCallbackMethod after_create after_destroy after_save after_update after_validation after_validation_on_create after_validation_on_update
+        syn keyword rubyRailsARCallbackMethod before_create before_destroy before_save before_update before_validation before_validation_on_create before_validation_on_update before_commit
+        syn keyword rubyRailsARCallbackMethod after_create after_destroy after_save after_update after_validation after_validation_on_create after_validation_on_update after_create_commit after_update_commit after_destroy_commit
         syn keyword rubyRailsARCallbackMethod around_create around_destroy around_save around_update
         syn keyword rubyRailsARCallbackMethod after_commit after_find after_initialize after_rollback after_touch
         syn keyword rubyRailsARClassMethod attr_accessible attr_protected attr_readonly has_secure_password has_secure_token store_accessor
@@ -3772,6 +3780,10 @@ function! rails#buffer_syntax()
         syn keyword rubyRailsMethod logger url_for polymorphic_path polymorphic_url
         syn keyword rubyRailsRenderMethod mail render
         syn keyword rubyRailsControllerMethod attachments default helper helper_attr helper_method layout
+      endif
+      if buffer.type_name('job')
+        syn keyword rubyRailsAPIMethod queue_as rescue_from
+        syn keyword rubyRailsARCallbackMethod before_enqueue around_enqueue after_enqueue before_perform around_perform after_perform
       endif
       if buffer.type_name('helper','view')
         syn keyword rubyRailsViewMethod polymorphic_path polymorphic_url
@@ -3787,7 +3799,7 @@ function! rails#buffer_syntax()
         syn keyword rubyRailsRenderMethod render
         syn keyword rubyRailsMethod logger polymorphic_path polymorphic_url
         syn keyword rubyRailsControllerMethod helper helper_attr helper_method filter layout url_for serialize exempt_from_layout filter_parameter_logging hide_action cache_sweeper protect_from_forgery caches_page cache_page caches_action expire_page expire_action rescue_from
-        syn keyword rubyRailsRenderMethod head redirect_to render_to_string respond_with
+        syn keyword rubyRailsRenderMethod head redirect_to redirect_back render_to_string respond_with
         syn match   rubyRailsRenderMethod '\<respond_to\>?\@!'
         syn keyword rubyRailsFilterMethod before_filter append_before_filter prepend_before_filter after_filter append_after_filter prepend_after_filter around_filter append_around_filter prepend_around_filter skip_before_filter skip_after_filter skip_filter before_action append_before_action prepend_before_action after_action append_after_action prepend_after_action around_action append_around_action prepend_around_action skip_before_action skip_after_action skip_action
         syn keyword rubyRailsFilterMethod verify
@@ -4542,6 +4554,7 @@ let s:default_projections = {
       \    "type": "helper"
       \  },
       \  "app/jobs/*_job.rb": {
+      \    "affinity": "model",
       \    "template": ["class {camelcase|capitalize|colons}Job < ActiveJob::Base", "end"],
       \    "type": "job"
       \  },
@@ -4713,6 +4726,16 @@ let s:has_projections = {
       \        "require 'test_helper'",
       \        "",
       \        "class {camelcase|capitalize|colons}Test < ActiveSupport::TestCase",
+      \        "end"
+      \      ],
+      \      "type": "unit test"
+      \    },
+      \    "test/jobs/*_test.rb": {
+      \      "affinity": "job",
+      \      "template": [
+      \        "require 'test_helper'",
+      \        "",
+      \        "class {camelcase|capitalize|colons}Test < ActiveJob::TestCase",
       \        "end"
       \      ],
       \      "type": "unit test"
@@ -4933,7 +4956,7 @@ function! s:SetBasePath() abort
   let path = ['lib', 'vendor']
   let path += get(g:, 'rails_path_additions', [])
   let path += get(g:, 'rails_path', [])
-  let path += ['app/models/concerns', 'app/controllers/concerns', 'app/controllers', 'app/helpers', 'app/mailers', 'app/models']
+  let path += ['app/models/concerns', 'app/controllers/concerns', 'app/controllers', 'app/helpers', 'app/mailers', 'app/models', 'app/jobs']
 
   let true = get(v:, 'true', 1)
   for [key, projection] in items(self.app().projections())
@@ -4949,10 +4972,10 @@ function! s:SetBasePath() abort
     let path += ['app/views/'.self.controller_name(), 'app/views/application', 'public']
   endif
   if self.app().has('test')
-    let path += ['test', 'test/unit', 'test/functional', 'test/integration', 'test/controllers', 'test/helpers', 'test/mailers', 'test/models']
+    let path += ['test', 'test/unit', 'test/functional', 'test/integration', 'test/controllers', 'test/helpers', 'test/mailers', 'test/models', 'test/jobs']
   endif
   if self.app().has('spec')
-    let path += ['spec', 'spec/controllers', 'spec/helpers', 'spec/mailers', 'spec/models', 'spec/views', 'spec/lib', 'spec/features', 'spec/requests', 'spec/integration']
+    let path += ['spec', 'spec/controllers', 'spec/helpers', 'spec/mailers', 'spec/models', 'spec/views', 'spec/lib', 'spec/features', 'spec/requests', 'spec/integration', 'spec/jobs']
   endif
   if self.app().has('cucumber')
     let path += ['features']
