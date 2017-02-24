@@ -152,6 +152,10 @@ function savepower {
   sudo tee /sys/class/backlight/intel_backlight/brightness <<< ${HALFBRIGHT} >/dev/null
 }
 
+function randomtext {
+  echo $(tr -cd A-Za-z0-9 < /dev/urandom | head -c${1:-16})
+}
+
 # end functions }}}
 
 # EXPORTS - swanky variables {{{
