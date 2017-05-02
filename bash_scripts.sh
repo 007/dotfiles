@@ -230,6 +230,7 @@ alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
 alias xzmax='xz -9evv --lzma2=dict=128MiB,lc=4,lp=0,pb=2,mode=normal,nice=273,mf=bt4,depth=1024'
 alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter notebook --notebook-dir=${HOME}/src/personal/carnd'
+alias nukedocker='ps -a -q | xargs --no-run-if-empty docker rm;docker image list -q | grep -v 7c09e61e9035 | xargs --no-run-if-empty docker rmi'
 
 # end aliases }}}
 
