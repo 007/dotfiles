@@ -1,0 +1,12 @@
+.bash_logout
+.gemrc
+.gitconfig
+.gitignore
+.perlcriticrc
+.selected_editor
+.ssh
+.vim
+.vimrc
+.xscreensaver
+bin
+secrets.sh.gpg
