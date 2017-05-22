@@ -11,7 +11,7 @@
 [push]
 	default = current
 [init]
-	templatedir = /home/rmoore/dotfiles/githooks
+	templatedir = ~/dotfiles/githooks
 [diff]
 	tool = p4merge
 	algorithm = patience
@@ -40,6 +40,6 @@
 [color "status"]
   added = green bold
   changed = yellow bold
-  header = black bold
+  header = white bold
   untracked = yellow
 

@@ -95,17 +95,17 @@ function all-repo-stats { # show status and branch info for all repos {{{
   for i in ${GR_HOME}/*/.git/; do
     pushd "${i%.git/}" > /dev/null 2> /dev/null
     # if we're on a non-feature branch, revert to master
-    git status 2>/dev/null | head -1 | grep -Pq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
+    git status 2>/dev/null | head -1 | grep -Eq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
     if [ "$(git status --porcelain)" == "" ] ; then
-      if git status 2>/dev/null | head -1 | grep -Pq 'On branch master'; then
+      if git status 2>/dev/null | head -1 | grep -Eq 'On branch master'; then
         # clean master branch
-        STATUS_COLOR="\e[1;32m"
+        STATUS_COLOR="$(tput setaf 2)"
       else
         # clean branch, but not master
-        STATUS_COLOR="\e[1;33m"
+        STATUS_COLOR="$(tput setaf 3)"
       fi
     else
-      STATUS_COLOR="\e[1;31m"
+      STATUS_COLOR="$(tput setaf 1)"
     fi
     echo -e "${STATUS_COLOR}" "$(pwd;git status 2> /dev/null | head -2)" "${COLOR_RESET}" | paste -d\  - - -
     popd > /dev/null
@@ -178,14 +178,14 @@ export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
 export KEY_SUFFIX="grandrounds.com"
 export GR_HOME=${HOME}/src
 export GR_USERNAME="ryan.moore"
-export COLOR_RESET="\e[0m"
+export COLOR_RESET="$(tput sgr0)"
 
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
 export GPG_TTY=$(tty)
 
 # secrets, but only for interactive shells and only if we have secrets
-/bin/grep -q i <<< $- && [ -e ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
+grep -q i <<< $- && [ -e ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
 
 # end exports }}}
 
