@@ -1,7 +1,9 @@
 [user]
-	email = ryan.moore@grandrounds.com
+	email = ryan@espressive.com
 	name = Ryan Moore
-	signingkey = B4CE8D591BB3F24DE31D71F7065AFA10C1FE49CC
+	signingkey = 497435BCD76EF306ED54329AFD865AC42F88EF0F
+[commit]
+  gpgsign = true
 [core]
   abbrev=16
 [pull]
