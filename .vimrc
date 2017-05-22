@@ -45,3 +45,8 @@ map <F2> :colo<space>vividchalk<cr>
 autocmd QuickFixCmdPost [^l]* nested cwindow
 autocmd QuickFixCmdPost    l* nested lwindow
 compiler shellcheck
+
+highlight BadWhitespace ctermbg=Red
+au BufRead,BufNewFile *.py match BadWhitespace /\s\+$/
+
+" end
