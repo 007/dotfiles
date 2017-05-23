@@ -90,14 +90,14 @@ function gravatar { # show a gravatar for an email {{{
 function all-repo-stats { # show status and branch info for all repos {{{
   for i in ${SRC_HOME}/*/.git/; do
     pushd "${i%.git/}" > /dev/null 2> /dev/null
-    # if we're on a non-feature branch, revert to master
-    git status 2>/dev/null | head -1 | grep -Eq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
+    # if we're on a non-feature branch, revert to gitflow default
+    git status 2>/dev/null | head -1 | grep -q 'On branch rc/' && git checkout develop >/dev/null 2>&1
     if [ "$(git status --porcelain)" == "" ] ; then
-      if git status 2>/dev/null | head -1 | grep -Eq 'On branch master'; then
-        # clean master branch
+      if git status 2>/dev/null | head -1 | grep -q 'On branch develop'; then
+        # clean default branch
         STATUS_COLOR="$(tput setaf 2)"
       else
-        # clean branch, but not master
+        # clean branch, but not default
         STATUS_COLOR="$(tput setaf 3)"
       fi
     else
@@ -115,7 +115,7 @@ function all-repo-update { # git update all repos {{{
     pushd "${i%.git/}" > /dev/null 2> /dev/null
     pwd
     # if we're on a non-feature branch, revert to master
-    git status 2>/dev/null | head -1 | grep -Eq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
+    git status 2>/dev/null | head -1 | grep -q 'On branch rc/' && git checkout develop >/dev/null 2>&1
     git pull
     popd
     if [ -e Gemfile ] ; then
