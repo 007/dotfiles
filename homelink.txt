@@ -1,7 +1,7 @@
 .bash_logout
 .gemrc
 .gitconfig
-.gitignore
+.gnupg
 .perlcriticrc
 .selected_editor
 .ssh
