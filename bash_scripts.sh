@@ -1,10 +1,6 @@
 #!/bin/bash
 
 # FUNCTIONS - more complicated mojo {{{
-function rekey-prod-robot {
-  gpg -qd "${GR_HOME}/engineering/ssh/private/github-grh-drone-id-rsa-honesty.pem.gpg" | gpg --quiet --symmetric --armor --cipher-algo AES256 -o "$(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg --passphrase $(grep 'echo robot_password=' original.json | head -1 | perl -pe 's/.*echo robot_password=(.*)\\n",/\1/')" --no-use-agent && aws s3 cp "$(grep 'echo stack=' original.json | head -1 | perl -pe 's/.*echo stack=(.*)\\n",/\1/').key.gpg" s3://grnds-production-robot/
-}
-
 function assume-aws-role {
   my_role="arn:aws:iam::000REDACTED000:role/xyz-REDACTED-zyx"
 
@@ -92,7 +88,7 @@ function gravatar { # show a gravatar for an email {{{
 } # }}}
 
 function all-repo-stats { # show status and branch info for all repos {{{
-  for i in ${GR_HOME}/*/.git/; do
+  for i in ${SRC_HOME}/*/.git/; do
     pushd "${i%.git/}" > /dev/null 2> /dev/null
     # if we're on a non-feature branch, revert to master
     git status 2>/dev/null | head -1 | grep -Eq 'On branch rc/branch/\d{4}-\d{2}-\d{2}' && git checkout master >/dev/null 2>&1
@@ -113,7 +109,7 @@ function all-repo-stats { # show status and branch info for all repos {{{
 } # }}}
 
 function all-repo-update { # git update all repos {{{
-  for i in ${GR_HOME}/*/.git/; do
+  for i in ${SRC_HOME}/*/.git/; do
     echo ""
     pushd "${i%.git/}" > /dev/null 2> /dev/null
     pushd "${i%.git/}" > /dev/null 2> /dev/null
@@ -130,7 +126,7 @@ function all-repo-update { # git update all repos {{{
 } # }}}
 
 function all-repo-clean { # clean out merged branches {{{
-  for i in ${GR_HOME}/*/.git/; do
+  for i in ${SRC_HOME}/*/.git/; do
     pushd "${i%.git/}" > /dev/null 2> /dev/null
     pwd
     git pull | grep -v 'up.to.date'
@@ -174,10 +170,7 @@ function randomtext {
 # EXPORTS - swanky variables {{{
 
 export EDITOR="vim"
-export IPSEC_SECRETS_FILE="/usr/local/etc/ipsec.secrets"
-export KEY_SUFFIX="grandrounds.com"
-export GR_HOME=${HOME}/src
-export GR_USERNAME="ryan.moore"
+export SRC_HOME=${HOME}/src
 export COLOR_RESET="$(tput sgr0)"
 
 # need gpg-agent ssh ability
@@ -232,14 +225,9 @@ alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
 alias devsrc="for i in \$(find ~/src/engineering/bash -type f -o -type l); do echo \$i;source \$i;done"
-alias icd10='xzcat ~/icd10.txt.xz | grep'
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
-alias sfo='sudo ipsec down grnds-sfo;sudo ipsec stop;sleep 3;sudo ipsec start;sleep 3;sudo ipsec up grnds-sfo'
 alias gitgc='git repack -a -d -f --depth=1000 --window=500'
 alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
-alias prodincexstat='mysql --login-path=prod-primary jarvis_production -e "SELECT * FROM delayed_jobs WHERE queue = \"reports\" AND handler LIKE \"%id: 27\\n%\"\G"'
-alias prodmysqlstat='mysql --login-path=prod-primary -e "SHOW ENGINE INNODB STATUS\G" | grep -C2 TRANSACTION'
-alias prodqueuestat='mysql --login-path=prod-primary jarvis_production -e "SELECT queue, COUNT(*) AS count FROM delayed_jobs WHERE run_at < NOW() AND failed_at IS NULL GROUP BY queue ORDER BY queue"'
 alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
 alias xzmax='xz -9evv --lzma2=dict=128MiB,lc=4,lp=0,pb=2,mode=normal,nice=273,mf=bt4,depth=1024'
