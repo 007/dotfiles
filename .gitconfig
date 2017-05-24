@@ -3,9 +3,9 @@
 	name = Ryan Moore
 	signingkey = 497435BCD76EF306ED54329AFD865AC42F88EF0F
 [commit]
-  gpgsign = true
+	gpgsign = true
 [core]
-  abbrev=16
+	abbrev=16
 [pull]
 	default = current
 [push]
@@ -22,24 +22,24 @@
 [tar "tar.xz"]
 	command = xz -9evvc
 [color "diff"]
-  meta = yellow bold
-  commit = green bold
-  frag = magenta bold
-  old = red bold
-  new = green bold
-  whitespace = red bold reverse
+	meta = yellow bold
+	commit = green bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+	whitespace = red bold reverse
 [color "diff-highlight"]
-  oldNormal = red bold
-  oldHighlight = "red bold 52"
-  newNormal = "green bold"
-  newHighlight = "green bold 22"
+	oldNormal = red bold
+	oldHighlight = "red bold 52"
+	newNormal = "green bold"
+	newHighlight = "green bold 22"
 [color "branch"]
-  current = yellow bold reverse
-  local = yellow bold
-  remote = green
+	current = yellow bold reverse
+	local = yellow bold
+	remote = green
 [color "status"]
-  added = green bold
-  changed = yellow bold
-  header = white bold
-  untracked = yellow
+	added = green bold
+	changed = yellow bold
+	header = white bold
+	untracked = yellow
 
