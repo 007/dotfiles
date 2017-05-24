@@ -15,8 +15,15 @@
 [diff]
 	tool = p4merge
 	algorithm = patience
+[difftool]
+	prompt = false
 [merge]
 	tool = p4merge
+	keepBackup = false
+[mergetool "p4merge"]
+	keepTemporaries = false
+	trustExitCode = false
+	keepBackup = false
 [branch]
 	autosetuprebase = always
 [tar "tar.xz"]
