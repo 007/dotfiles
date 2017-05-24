@@ -162,7 +162,7 @@ function savepower {
 }
 
 function randomtext {
-  echo $(tr -cd A-Za-z0-9 < /dev/urandom | head -c${1:-16})
+  echo $(LC_ALL=C tr -cd A-Za-z0-9 < /dev/urandom | head -c${1:-16})
 }
 
 # end functions }}}
