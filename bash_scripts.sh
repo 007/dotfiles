@@ -252,6 +252,7 @@ suffix_path "${HOME}/src/engineering/bin"
 # ETC - other stuff {{{
 
 [[ -e "/etc/bash_completion" ]] && . /etc/bash_completion
+[[ -f "/usr/local/etc/bash_completion" ]] && . /usr/local/etc/bash_completion
 [[ -e "/usr/share/awscli/aws_completer" ]] && complete -C '/usr/share/awscli/aws_completer' aws
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 # shellcheck disable=SC2046
