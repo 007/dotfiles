@@ -176,6 +176,12 @@ function genpass-complex {
   echo "$(LC_ALL=C tr -cd ' -~' < /dev/urandom | head -c${1:-64})"
 }
 
+# if (command exists) { run cmdline && eval output into current shell }
+# wrapper to simplify this: type -P thefuck > /dev/null && eval "$(thefuck --alias)"
+function checkruneval () {
+  type -P "${1}" > /dev/null && eval "$(eval "$@")"
+}
+
 # end functions }}}
 
 # EXPORTS - swanky variables {{{
@@ -266,10 +272,11 @@ suffix_path "${HOME}/src/engineering/bin"
 [[ -f "/usr/local/etc/bash_completion" ]] && . /usr/local/etc/bash_completion
 [[ -e "/usr/share/awscli/aws_completer" ]] && complete -C '/usr/share/awscli/aws_completer' aws
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-# shellcheck disable=SC2046
-[[ -e /usr/bin/dircolors ]] && eval $(/usr/bin/dircolors)
-# shellcheck disable=SC2046
-[[ -e /usr/local/bin/thefuck ]] && eval $(thefuck --alias)
+
+checkruneval dircolors
+checkruneval thefuck --alias
+checkruneval minikube completion bash
+checkruneval kops completion bash
 
 # end etc }}}
 
