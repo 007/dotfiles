@@ -161,8 +161,19 @@ function savepower {
   sudo tee /sys/class/backlight/intel_backlight/brightness <<< ${HALFBRIGHT} >/dev/null
 }
 
-function randomtext {
-  echo $(LC_ALL=C tr -cd A-Za-z0-9 < /dev/urandom | head -c${1:-16})
+# shellcheck disable=SC2005
+function genpass-simple {
+  echo "$(LC_ALL=C tr -cd A-Za-z0-9 < /dev/urandom | head -c${1:-16})"
+}
+
+# shellcheck disable=SC2005
+function genpass-b64 {
+  echo "$(base64 -w0 < /dev/urandom | head -c${1:-32})"
+}
+
+# shellcheck disable=SC2005
+function genpass-complex {
+  echo "$(LC_ALL=C tr -cd ' -~' < /dev/urandom | head -c${1:-64})"
 }
 
 # end functions }}}
