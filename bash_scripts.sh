@@ -261,7 +261,6 @@ alias emacs="emacs -nw"
 alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
-alias devsrc="for i in \$(find ~/src/engineering/bash -type f -o -type l); do echo \$i;source \$i;done"
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 alias gitgc='git repack -a -d -f --depth=1000 --window=500'
 alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
@@ -270,6 +269,8 @@ alias lrmax='lrzip -vv -Uz -N 19 -L 9'
 alias xzmax='xz -9evv --lzma2=dict=128MiB,lc=4,lp=0,pb=2,mode=normal,nice=273,mf=bt4,depth=1024'
 alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter notebook --notebook-dir=${HOME}/src/personal/carnd'
 alias nukedocker='ps -a -q | xargs --no-run-if-empty docker rm;docker image list -q | grep -v 7c09e61e9035 | xargs --no-run-if-empty docker rmi'
+alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins-master:/var/lib/jenkins/ ~/working/jenkins/'
+alias updateqa='ssh -t qabox ./update-qa.sh'
 
 # end aliases }}}
 
@@ -282,8 +283,6 @@ prefix_path /Applications/Xcode.app/Contents/Developer/usr/bin
 prefix_path "/usr/local/opt/coreutils/libexec/gnubin"
 prefix_path "${HOME}/bin"
 prefix_path "${HOME}/anaconda3/bin"
-prefix_path "${HOME}/.rvm/bin"
-suffix_path "${HOME}/src/engineering/bin"
 
 # end paths }}}
 
@@ -296,7 +295,7 @@ suffix_path "${HOME}/src/engineering/bin"
 
 checkruneval dircolors
 checkruneval thefuck --alias
-checkruneval minikube completion bash
+#checkruneval minikube completion bash
 checkruneval kops completion bash
 
 # end etc }}}
