@@ -192,7 +192,8 @@ COLOR_RESET="$(tput sgr0)" && export COLOR_RESET
 
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
-export GPG_TTY=$(tty)
+GPG_TTY=$(tty) && export GPG_TTY
+pgrep -q -u $(id -u) gpg-agent || gpg-agent --daemon --enable-ssh-support > /dev/null 2>&1
 
 # secrets, but only for interactive shells and only if we have secrets
 grep -q i <<< $- && [ -e ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
