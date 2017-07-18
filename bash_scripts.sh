@@ -188,7 +188,7 @@ function checkruneval () {
 
 export EDITOR="vim"
 export SRC_HOME=${HOME}/src
-export COLOR_RESET="$(tput sgr0)"
+COLOR_RESET="$(tput sgr0)" && export COLOR_RESET
 
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
@@ -196,6 +196,25 @@ export GPG_TTY=$(tty)
 
 # secrets, but only for interactive shells and only if we have secrets
 grep -q i <<< $- && [ -e ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
+
+# fancy PS1 with colors and such
+if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+    # We have color support; assume it's compliant with Ecma-48
+    # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+    # a case would tend to support setf rather than setaf.)
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u\[\033[0;31m\]@\[\033[0;33m\]\h\[\033[00m\]:\[\033[01;34m\]\W\[\033[00m\]\n\$ '
+  else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
 
 # end exports }}}
 
@@ -221,13 +240,13 @@ shopt -s histappend
 # update the values of LINES and COLUMNS.
 shopt -s checkwinsize
 
-# end shell}}}
+# end shell }}}
 
 # ALIASES - one-liners and whatnot {{{
 
 # linux has /proc, osx doesn't
 # shellcheck disable=SC2015
-[ -e /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal'
+[ -e /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal --color=auto'
 
 alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
 alias fixmacdns='dscacheutil -flushcache'
@@ -259,6 +278,7 @@ alias nukedocker='ps -a -q | xargs --no-run-if-empty docker rm;docker image list
 prefix_path /usr/local/git/bin
 prefix_path /usr/local/pear/bin
 prefix_path /Applications/Xcode.app/Contents/Developer/usr/bin
+prefix_path "/usr/local/opt/coreutils/libexec/gnubin"
 prefix_path "${HOME}/bin"
 prefix_path "${HOME}/anaconda3/bin"
 prefix_path "${HOME}/.rvm/bin"
