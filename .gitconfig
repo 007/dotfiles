@@ -1,3 +1,4 @@
+# see https://git-scm.com/docs/git-config for definitions
 [user]
 	email = ryan@espressive.com
 	name = Ryan Moore
@@ -15,6 +16,9 @@
 [diff]
 	tool = p4merge
 	algorithm = patience
+  mnemonicprefix = true
+  compactionHeuristic = true
+  renames = copies
 [difftool]
 	prompt = false
 [merge]
@@ -49,4 +53,13 @@
 	changed = yellow bold
 	header = white bold
 	untracked = yellow
+[alias]
+  prme = "!open \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/new?source=$(git rev-parse --abbrev-ref HEAD)&t=1&dest=develop\""
+[grep]
+  lineNumber = true
+  extendedRegexp = true
+[help]
+  autocorrect = 0
+[http]
+  sslVersion = tlsv1.2
 
