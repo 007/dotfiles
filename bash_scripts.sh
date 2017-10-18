@@ -87,6 +87,10 @@ function gravatar { # show a gravatar for an email {{{
   open "https://s.gravatar.com/avatar/$(echo -n "$@" | md5sum | awk '{print $1}')?s=250"
 } # }}}
 
+function svg2png { # convert SVG to PNG nicely
+  nice convert -background none -density 1200 "${1}" -depth 8 -trim +repage -geometry ${2-1024}x${2-1024}+ "${1}.png" && nice optipng -q -nx -strip all -o1 "${1}.png"
+} # }}}
+
 function all-repo-stats { # show status and branch info for all repos {{{
   for i in ${SRC_HOME}/*/.git/; do
     pushd "${i%.git/}" > /dev/null 2> /dev/null
