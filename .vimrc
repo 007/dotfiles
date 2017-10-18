@@ -5,7 +5,8 @@ set tabstop=2
 set softtabstop=2
 set shiftwidth=2
 set expandtab
-"set foldmethod=marker
+set foldmethod=marker
+set nofoldenable
 " use these two together for pasting tabbed content when autoindent is enabled
 " set autoindent
 " set pastetoggle=<F2>
