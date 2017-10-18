@@ -84,7 +84,7 @@ function aws-lb-health { # enumerate load balancers, then show InService or OutO
 } # }}}
 
 function gravatar { # show a gravatar for an email {{{
-  display "https://s.gravatar.com/avatar/$(echo -n "$@" | md5sum | awk '{print $1}')?s=250"
+  open "https://s.gravatar.com/avatar/$(echo -n "$@" | md5sum | awk '{print $1}')?s=250"
 } # }}}
 
 function all-repo-stats { # show status and branch info for all repos {{{
