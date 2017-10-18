@@ -275,6 +275,8 @@ alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter not
 alias nukedocker='ps -a -q | xargs --no-run-if-empty docker rm;docker image list -q | grep -v 7c09e61e9035 | xargs --no-run-if-empty docker rmi'
 alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins-master:/var/lib/jenkins/ ~/working/jenkins/'
 alias updateqa='ssh -t qabox ./update-qa.sh'
+alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs brew cask reinstall'
+alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
 
 # end aliases }}}
 
