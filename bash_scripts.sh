@@ -25,13 +25,13 @@ function confirm { # require "YES" to be entered for a confirmation {{{
   fi
 } # }}}
 
-function smore { # syntax hilighting more command {{{
+function tax { # syntax hilighting command {{{
   if [ "$(date --date='8 hours ago' +%H)" -gt 12 ] ; then
     style='paraiso-dark'
   else
     style='rrt'
   fi
-  for S in "$@"; do pygmentize -O style=$style -f terminal256 "$S" | less -R;done
+  for S in "$@"; do pygmentize -O style=$style -f terminal256 "$S";done
 } # }}}
 
 function sniff_basics { # fix basic errors found in sniff {{{
