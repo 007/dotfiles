@@ -27,7 +27,7 @@ syntax enable
 set background=dark
 set t_Co=256
 colo slate
-colo vividchalk
+colo jellybeans
 " searching
 set hlsearch
 set incsearch
