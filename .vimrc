@@ -53,4 +53,9 @@ compiler shellcheck
 highlight BadWhitespace ctermbg=Red
 au BufRead,BufNewFile *.py match BadWhitespace /\s\+$/
 
+" transparent background
+highlight Normal ctermbg=NONE
+highlight CursorLine ctermbg=black
+highlight Visual ctermbg=darkgrey
+set cursorline
 " end
