@@ -7,6 +7,7 @@
 	gpgsign = true
 [core]
 	abbrev=16
+	excludesfile=~/.gitignore
 [pull]
 	default = current
 [push]
@@ -28,6 +29,8 @@
 	keepTemporaries = false
 	trustExitCode = false
 	keepBackup = false
+[pack]
+	threads = 4
 [branch]
 	autosetuprebase = always
 [tar "tar.xz"]
@@ -55,8 +58,8 @@
 	untracked = yellow
 [alias]
   prme = "!open \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/new?source=$(git rev-parse --abbrev-ref HEAD)&t=1&dest=develop\""
-  getpull = "!open \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/$(git log --merges --ancestry-path --oneline ${1}..HEAD | grep 'pull request' | tail -n1 | perl -pe 's/^.+\\(pull request #(\\d+)\\)$/\\1/g')\" #"
-  parent-branch= "!git show-branch -a 2>/dev/null | grep '\\*' | grep -v $(git rev-parse --abbrev-ref HEAD) | head -n1 | sed 's/.*\\[\\(.*\\)\\].*/\\1/' | sed 's/[\\^~].*//'"
+  getpull = "!open \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/$(git log --merges --ancestry-path --oneline --reverse ${1}..HEAD | grep 'pull request' | head -n1 | perl -pe 's/^.+\\(pull request #(\\d+)\\)$/\\1/g')\" #"
+  parent-branch= "!git show-branch -a 2>/dev/null | grep -A1 $(git rev-parse --abbrev-ref HEAD) | tail -n1 | perl -pe 's/.*\\[(.*)[\\]^~].*/$1/'"
 [grep]
   lineNumber = true
   extendedRegexp = true
