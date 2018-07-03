@@ -192,7 +192,6 @@ function checkruneval () {
 
 export EDITOR="vim"
 export SRC_HOME=${HOME}/src
-COLOR_RESET="$(tput sgr0)" && export COLOR_RESET
 
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
@@ -203,7 +202,8 @@ pgrep -u $(id -u) gpg-agent > /dev/null || gpg-agent --daemon --enable-ssh-suppo
 grep -q i <<< $- && [ -e ~/secrets.sh.gpg ] && source /dev/stdin <<< $(gpg --no-tty -q -d ~/secrets.sh.gpg)
 
 # fancy PS1 with colors and such
-if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+if [ -x /usr/bin/tput ] && grep -q i <<< $- && tput setaf 1 >&/dev/null; then
+    COLOR_RESET="$(tput sgr0)" && export COLOR_RESET
     # We have color support; assume it's compliant with Ecma-48
     # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
     # a case would tend to support setf rather than setaf.)
