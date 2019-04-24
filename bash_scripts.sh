@@ -249,9 +249,6 @@ shopt -s checkwinsize
 
 # ALIASES - one-liners and whatnot {{{
 
-# linux has /proc, osx doesn't
-# shellcheck disable=SC2015
-[ -e /proc ] && alias ll='ls -alF --color=auto' || alias ll='ls -Gal --color=auto'
 
 alias jslint='jsl -nologo -nocontext -nofilelisting -nosummary -process'
 alias fixmacdns='dscacheutil -flushcache'
@@ -261,6 +258,7 @@ alias svngrep='find . -xdev -type f -not -path "*.svn/*" -not -path "*.git/*" -p
 alias histgrep='find ~/.history/ -type f -print0 2>/dev/null | xargs -0 grep --color=auto -InH'
 alias lintperl="svnperl | xargs -I{} perl -cIlib {}"
 alias lockup='light-locker-command --lock'
+alias ll='ls -alF --color=auto'
 alias emacs="emacs -nw"
 alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
