@@ -265,8 +265,9 @@ alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 alias gitgc='git repack -a -d -f --depth=1000 --window=500'
-alias gitdev='git log --oneline $(git parent-branch)..HEAD'
-alias gitdevp='git log -p $(git parent-branch)..HEAD'
+alias gitdev='git log --oneline develop..HEAD'
+alias gitdevp='git log -p develop..HEAD'
+alias gitdevd='git diff develop..HEAD'
 alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
 alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
