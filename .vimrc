@@ -53,6 +53,10 @@ compiler shellcheck
 highlight BadWhitespace ctermbg=Red
 au BufRead,BufNewFile *.py match BadWhitespace /\s\+$/
 
+" add yaml stuffs
+au! BufNewFile,BufReadPost *.{yaml,yml} set filetype=yaml foldmethod=indent
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+
 " transparent background
 highlight Normal ctermbg=NONE
 highlight CursorLine ctermbg=black
