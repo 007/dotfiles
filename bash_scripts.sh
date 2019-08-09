@@ -278,6 +278,7 @@ alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins
 alias updateqa='ssh -t qabox ./update-qa.sh'
 alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs brew cask reinstall'
 alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
+alias ubuntu='docker run --rm -it ubuntu:bionic'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
 
 # end aliases }}}
