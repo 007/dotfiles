@@ -32,6 +32,7 @@ colo jellybeans
 highlight GitGutterAdd    guifg=#009900 guibg=#000000 ctermfg=2 ctermbg=0
 highlight GitGutterChange guifg=#bbbb00 guibg=#000000 ctermfg=3 ctermbg=0
 highlight GitGutterDelete guifg=#ff2222 guibg=#000000 ctermfg=1 ctermbg=0
+set updatetime=800
 
 " searching
 set hlsearch
