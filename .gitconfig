@@ -1,8 +1,8 @@
 # see https://git-scm.com/docs/git-config for definitions
 [user]
-	email = ryan@espressive.com
+	email = rmoore@aurora.tech
 	name = Ryan Moore
-	signingkey = 497435BCD76EF306ED54329AFD865AC42F88EF0F
+	signingkey = 0723BCF14E50AAF4837292C4AC150A1ED0BEA02E
 [commit]
 	gpgsign = true
 [core]
