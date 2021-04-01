@@ -282,7 +282,7 @@ alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs
 alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
 alias awslogin='bazel run //cloud/terraform_aws:aws_auth -- login'
 alias k8slogin='bazel run //cloud/terraform_aws:aws_auth -- k8s'
-alias ubuntu='docker run --rm -it ubuntu:bionic'
+alias ubuntu='docker run --rm -it --mount type=bind,source=${HOME}/working,target=/working ubuntu:focal'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
 alias tfgo='terraform init && terraform get && terraform plan -out plan.out'
 alias ident='figlet -w $COLUMNS -r $USER | lolcat -p 0.3'
