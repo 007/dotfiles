@@ -2,9 +2,9 @@
 
 # FUNCTIONS - more complicated mojo {{{
 function assume-aws-role {
-  my_role="arn:aws:iam::000REDACTED000:role/xyz-REDACTED-zyx"
+  my_role="arn:aws:iam::${1}:role/OrganizationAccountAccessRole"
 
-  role_creds=$(aws sts assume-role --role-arn "${my_role}" --role-session-name "REDACTED-NAME")
+  role_creds=$(aws sts assume-role --role-arn "${my_role}" --role-session-name "OrgAccess")
 
   eval $(jq -r '.Credentials|
   "export AWS_ACCESS_KEY_ID=" + .AccessKeyId,
@@ -193,6 +193,8 @@ function checkruneval () {
 export EDITOR="vim"
 export SRC_HOME=${HOME}/src
 
+export AWS_SDK_LOAD_CONFIG=1
+
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
 GPG_TTY=$(tty) && export GPG_TTY
@@ -278,6 +280,7 @@ alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins
 alias updateqa='ssh -t qabox ./update-qa.sh'
 alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs brew cask reinstall'
 alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
+alias awslogin='bazel run //cloud/terraform_aws:aws_auth -- login'
 alias ubuntu='docker run --rm -it ubuntu:bionic'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
 
@@ -299,7 +302,7 @@ prefix_path "${HOME}/anaconda3/bin"
 
 [[ -e "/etc/bash_completion" ]] && . /etc/bash_completion
 [[ -f "/usr/local/etc/bash_completion" ]] && . /usr/local/etc/bash_completion
-[[ -e "/usr/share/awscli/aws_completer" ]] && complete -C '/usr/share/awscli/aws_completer' aws
+[[ -e "/usr/local/bin/aws_completer" ]] && complete -C '/usr/local/bin/aws_completer' aws
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
 checkruneval dircolors
