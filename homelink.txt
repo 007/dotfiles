@@ -1,13 +1,9 @@
 .bash_logout
-.gemrc
 .gitconfig
 .gitexcludes
 .gnupg
-.perlcriticrc
 .selected_editor
 .ssh
 .vim
 .vimrc
-.xscreensaver
 bin
-secrets.sh.gpg

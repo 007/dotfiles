@@ -2,7 +2,7 @@
 SRC_PATH="${HOME}/dotfiles"
 
 function linkhome {
-  ln -sinf ${SRC_PATH}/${1} ~/${1}
+  ln -snifr ${SRC_PATH}/${1} ~/${1}
 }
 
 

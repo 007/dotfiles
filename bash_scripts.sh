@@ -281,8 +281,12 @@ alias updateqa='ssh -t qabox ./update-qa.sh'
 alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs brew cask reinstall'
 alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
 alias awslogin='bazel run //cloud/terraform_aws:aws_auth -- login'
+alias k8slogin='bazel run //cloud/terraform_aws:aws_auth -- k8s'
 alias ubuntu='docker run --rm -it ubuntu:bionic'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
+alias tfgo='terraform init && terraform get && terraform plan -out plan.out'
+alias ident='figlet -w $COLUMNS -r $USER | lolcat -p 0.3'
+alias awsfind='2>/dev/null bazel run //cloud/terraform_aws:acct_mgr find'
 
 # end aliases }}}
 
@@ -308,6 +312,7 @@ prefix_path "${HOME}/anaconda3/bin"
 checkruneval dircolors
 checkruneval thefuck --alias
 #checkruneval minikube completion bash
+checkruneval kubectl completion bash
 checkruneval kops completion bash
 
 # end etc }}}

@@ -69,3 +69,6 @@ highlight CursorLine ctermbg=black
 highlight Visual ctermbg=darkgrey
 set cursorline
 " end
+
+" allow type / style / syntax hints
+set modeline
