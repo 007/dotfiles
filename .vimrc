@@ -51,6 +51,7 @@ set backspace=indent,eol,start
 map <F5> :silent<space>make<cr>:redraw!<cr>
 "map <F5> :!clear;python<space>%<cr>
 map <F2> :colo<space>vividchalk<cr>
+map <F3> :!clear;mypy<space>%;black<space>%;isort<space>%<cr>:redraw!<cr>:edit<cr>
 
 autocmd QuickFixCmdPost [^l]* nested cwindow
 autocmd QuickFixCmdPost    l* nested lwindow

@@ -14,6 +14,10 @@ function assume-aws-role {
   echo "AWS Access Keys and SessionToken set for assumed role. Session will expire in ~1hr"
 }
 
+function dotplan {
+  T=`mktemp` && curl -so $T https://plan.cat/~007 && $EDITOR $T && curl -su 007 -F "plan=<$T" https://plan.cat/stdin && rm "$T"
+}
+
 function confirm { # require "YES" to be entered for a confirmation {{{
   read -t 60 -p "$1 [yes/NO] : "
   if [ "$REPLY" == "YES" ] ; then
@@ -31,7 +35,13 @@ function tax { # syntax hilighting command {{{
   else
     style='rrt'
   fi
-  for S in "$@"; do pygmentize -O style=$style -f terminal256 "$S";done
+
+  for S in "$@"; do
+    # if file has a suffix, lex as-is
+    pygmentize -O style=$style -f terminal256 "$S";done
+    
+    # if not, guess-and-lex
+    #cat "$S" | pygmentize -C
 } # }}}
 
 function sniff_basics { # fix basic errors found in sniff {{{
@@ -69,6 +79,16 @@ function gitsync { # stash any changes, rebase from SVN and restore stash {{{
     echo "done"
 } # }}}
 
+function avsync {
+  local t
+  nice -n19 ionice -c 3 git checkout main
+  nice -n19 ionice -c 3 git fetch --prune --tags --prune-tags
+  nice -n19 ionice -c 3 git merge FETCH_HEAD
+  for t in min-ci lastci truck-lastci common_pull_point pbt-engdev-lastci sienna-engdev-lastci; do
+    nice -n19 ionice -c 3 git fetch --force origin refs/tags/${t}:refs/tags/${t}
+  done
+}
+
 function aws-check-instance-health { # check iowait and cpusteal for CFN instances {{{
     STACK_NAME=$(aws cloudformation describe-stacks | jq -r .Stacks[0].StackName)
     echo "Fetching instances for $STACK_NAME"
@@ -82,6 +102,11 @@ function aws-lb-health { # enumerate load balancers, then show InService or OutO
     echo "$lb $(aws elb describe-instance-health --load-balancer "$lb" | jq -r .InstanceStates[].State | xargs echo)"
   done
 } # }}}
+
+function gcloudadmin {
+  export GOOGLE_CLOUD_KEYFILE_JSON=${HOME}/.config/gcloud/cloud-admin-service-account.json
+  gcloud auth activate-service-account --key-file=${GOOGLE_CLOUD_KEYFILE_JSON}
+}
 
 function gravatar { # show a gravatar for an email {{{
   open "https://s.gravatar.com/avatar/$(echo -n "$@" | md5sum | awk '{print $1}')?s=250"
@@ -144,6 +169,25 @@ function all-repo-clean { # clean out merged branches {{{
   done
 } # }}}
 
+function flow-rebase {
+  local OLD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  echo "Will switch back to $OLD_BRANCH when done"
+  git checkout master
+  git fetch --prune
+  git pull
+  bonsai show
+
+  if [[ "${1:-all}" == "all" ]]; then
+    bonsai cascade --rebase
+  else
+    for BRANCH in "$@"; do
+      bonsai cascade --rebase master "$BRANCH"
+    done
+  fi
+  bonsai branch "$OLD_BRANCH"
+  bonsai show
+}
+
 function prefix_path { # add a prefix to the path if it exists and isn't already in the path {{{
     [[ ! "$PATH" =~ $1 && -e "$1" ]] && export PATH="${1}:${PATH}"
 } # }}}
@@ -171,6 +215,11 @@ function genpass-simple {
 }
 
 # shellcheck disable=SC2005
+function genpass-hex {
+  echo "$(LC_ALL=C tr -cd a-f0-9 < /dev/urandom | head -c${1:-16})"
+}
+
+# shellcheck disable=SC2005
 function genpass-b64 {
   echo "$(base64 -w0 < /dev/urandom | head -c${1:-32})"
 }
@@ -180,10 +229,19 @@ function genpass-complex {
   echo "$(LC_ALL=C tr -cd ' -~' < /dev/urandom | head -c${1:-64})"
 }
 
+function genpass-annoying {
+  echo "$(LC_ALL=C tr -cd iIl1oO0B8S5 < /dev/urandom | head -c${1:-32})"
+}
+
+
 # if (command exists) { run cmdline && eval output into current shell }
 # wrapper to simplify this: type -P thefuck > /dev/null && eval "$(thefuck --alias)"
 function checkruneval () {
   type -P "${1}" > /dev/null && eval "$(eval "$@")"
+}
+
+function wayback {
+  curl "https://web.archive.org/save/${1}"
 }
 
 # end functions }}}
@@ -192,8 +250,6 @@ function checkruneval () {
 
 export EDITOR="vim"
 export SRC_HOME=${HOME}/src
-
-export AWS_SDK_LOAD_CONFIG=1
 
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
@@ -248,6 +304,7 @@ shopt -s histappend
 shopt -s checkwinsize
 
 # end shell }}}
+export AURORA_DEVPLATFORM_PREVIEW=true
 
 # ALIASES - one-liners and whatnot {{{
 
@@ -266,7 +323,7 @@ alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
-alias gitgc='git repack -a -d -f --depth=1000 --window=500'
+alias gitgc='nice -n19 ionice -c 3 git repack -a -d -f --depth=1000 --window=500'
 alias gitdev='git log --oneline develop..HEAD'
 alias gitdevp='git log -p develop..HEAD'
 alias gitdevd='git diff develop..HEAD'
@@ -280,13 +337,17 @@ alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins
 alias updateqa='ssh -t qabox ./update-qa.sh'
 alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs brew cask reinstall'
 alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
-alias awslogin='bazel run //cloud/terraform_aws:aws_auth -- login'
-alias k8slogin='bazel run //cloud/terraform_aws:aws_auth -- k8s'
+alias awslogin='bazel run //cloud/terraform:aws_auth -- login'
+alias k8slogin='bazel run //cloud/terraform:aws_auth -- k8s'
 alias ubuntu='docker run --rm -it --mount type=bind,source=${HOME}/working,target=/working ubuntu:focal'
+alias spacelift-container='docker run --rm -it public.ecr.aws/spacelift/runner-terraform:latest'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
 alias tfgo='terraform init && terraform get && terraform plan -out plan.out'
 alias ident='figlet -w $COLUMNS -r $USER | lolcat -p 0.3'
-alias awsfind='2>/dev/null bazel run //cloud/terraform_aws:acct_mgr find'
+alias fedrate='curl -s https://fred.stlouisfed.org/data/MORTGAGE15US.txt | tail -1 | awk '\''{print "Fed rate for " $1 " is " $2}'\'''
+alias googsync='LOG_LEVEL=debug time bazel run //cloud/terraform:sso_admin -- sync-google --test-org --save-temp'
+alias awsfind='2>/dev/null bazel run //cloud/terraform:acct_mgr find'
+alias spaceliftdns='dig @8.8.8.8 +noall +answer +dnssec aurora-tech.app.spacelift.io'
 
 # end aliases }}}
 
@@ -314,8 +375,21 @@ checkruneval thefuck --alias
 #checkruneval minikube completion bash
 checkruneval kubectl completion bash
 checkruneval kops completion bash
+source <(cd ~/src/av;bonsai completion dump bash)
 
 # end etc }}}
 
 #eof
+alias avgitsync=" rsync -a --no-i-r --info=progress2 ~/src/av/ palpatine:~/working/av/"
+
+
+
+_direnv_hook() {
+  local previous_exit_status=$?;
+  eval "$(direnv export bash)";
+  return $previous_exit_status;
+};
+if ! [[ "$PROMPT_COMMAND" =~ _direnv_hook ]]; then
+  PROMPT_COMMAND="_direnv_hook;$PROMPT_COMMAND";
+fi
 

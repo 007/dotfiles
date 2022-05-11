@@ -8,25 +8,31 @@
 [core]
 	abbrev=16
 	excludesfile=~/.gitignore
+[fetch]
+	prune = true
+[gc]
+	auto = 0
 [pull]
 	default = current
 [push]
 	default = current
 [init]
 	templatedir = ~/dotfiles/githooks
+  defaultBranch = main
 [diff]
 	tool = p4merge
 	algorithm = patience
   mnemonicprefix = true
   compactionHeuristic = true
   renames = copies
+	renamelimit = 100000
 [difftool]
 	prompt = false
 [merge]
 #	tool = p4merge
 	tool = vimdiff
 	keepBackup = false
-	renamelimit = 10000
+	renamelimit = 100000
 [mergetool "p4merge"]
 	keepTemporaries = false
 	trustExitCode = false
@@ -34,7 +40,8 @@
 [pack]
 	threads = 4
 [branch]
-	autosetuprebase = always
+	#autosetuprebase = always
+	autosetuprebase = never
 [tar "tar.xz"]
 	command = xz -9evvc
 [color "diff"]
@@ -59,9 +66,12 @@
 	header = white bold
 	untracked = yellow
 [alias]
-  prme = "!echo \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/new?source=$(git rev-parse --abbrev-ref HEAD)&t=1&dest=develop\""
+  prme = "!echo \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/compare/$(git rev-parse --abbrev-ref HEAD)?expand=1\""
   getpull = "!echo \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/$(git log --merges --ancestry-path --oneline --reverse ${1}..HEAD | grep 'pull request' | head -n1 | perl -pe 's/^.+\\(pull request #(\\d+)\\)$/\\1/g')\" #"
   parent-branch= "!git show-branch -a 2>/dev/null | grep -A1 $(git rev-parse --abbrev-ref HEAD) | tail -n1 | perl -pe 's/.*\\[(.*)[\\]^~].*/$1/'"
+  #last = "!git log --oneline --max-count=1"
+  last = "log --oneline --max-count=1"
+  logfull = "log --stat --pretty=fuller --date=local"
 [grep]
   lineNumber = true
   extendedRegexp = true
@@ -70,3 +80,8 @@
 #[http]
 #  sslVersion = tlsv1.2
 
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
