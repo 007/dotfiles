@@ -1,0 +1,60 @@
+#!/bin/bash
+set -euo pipefail
+
+function benice {
+  nice ionice --ignore --class 2 --classdata 7 "$@"
+}
+
+set -x
+OLD_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+
+# load gpg key into agent cache
+gpg -qd > /dev/null 2>&1 << EOF
+-----BEGIN PGP MESSAGE-----
+
+hH4DI/160vdWeUUSAgMEf5uGzLvN0V8SGs2o6FfZa5eUiFVRfZoTVLaVu/uU6kES
+N4Nv+Jmq0kbb5zpa1vaig62Tb3tXNlL2zOoCH+6xIDDNp0LqQyNWrGGKE+VygDvQ
+vMntSVgVF+K99ULVPJcar+HOD3boUgcjzIQ5N2rQw8XSXwG7KiRPBnehV0Cl2WIf
+jC728ccCT/c0BtDCmEBAAWVV7gtcduQeeO2R8PFDFej1Otwk4iEZxj8Aq1E8+jfN
+m/FLR7RTH0cu7uD2Q9K9AzQGeEww45V7u3AyvCxRl22J
+=csZ5
+-----END PGP MESSAGE-----
+EOF
+
+
+benice git checkout main
+benice bonsai tidy
+
+# check to see if we deleted our old branch as part of tidy
+git rev-parse --verify --quiet "$OLD_BRANCH" || OLD_BRANCH="main"
+echo "Will switch to $OLD_BRANCH when done"
+
+benice git fetch --prune --tags --prune-tags || true
+benice git merge FETCH_HEAD
+for t in min-ci lastci truck-lastci common_pull_point pbt-engdev-lastci sienna-engdev-lastci; do
+  benice git fetch --force origin refs/tags/${t}:refs/tags/${t} || true
+done
+
+bonsai show
+
+if [[ "${1:-safe}" == "safe" ]]; then
+  echo "Cascading safe branches"
+  benice bonsai cascade --rebase main zzsafe && \
+    benice bonsai branch zzsafe && \
+    benice bonsai cascade --rebase || true
+elif [[ "${1:-safe}" == "none" ]]; then
+  echo "Skipping auto-cascade"
+elif [[ "${1:-safe}" == "all" ]]; then
+  benice bonsai cascade --rebase
+elif [[ "${1:-safe}" == "this" ]]; then
+  benice bonsai cascade --rebase main "$OLD_BRANCH"
+else
+  for BRANCH in "$@"; do
+    benice bonsai cascade --rebase main "$BRANCH"
+  done
+fi
+
+bonsai branch "$OLD_BRANCH"
+bonsai show
+
