@@ -1,5 +1,26 @@
 #!/bin/bash
 
+function vanity {
+  while ! git rev-parse HEAD | grep -Eq '^(00+7)';do git rev-parse HEAD;git commit --amend --no-edit;done
+}
+
+function whatpipdep {
+  git grep aurora_pip_dependencies//pip/${1}
+}
+
+function fastfreeze {
+  bazel build //common/python/pip:freeze_dependencies
+  FREEZE_THESE=(python_37 python_310 python_aarch64)
+  for x in ${FREEZE_THESE[@]}; do
+  screen -dmS $x bazel run --noblock_for_lock //common/python/pip:freeze_dependencies -- $x --yes_to_prompt
+  done
+
+  for x in ${FREEZE_THESE[@]}; do
+    screen -r ${x}
+    sleep 5
+  done
+}
+
 # FUNCTIONS - more complicated mojo {{{
 function assume-aws-role {
   my_role="arn:aws:iam::${1}:role/OrganizationAccountAccessRole"
@@ -80,10 +101,10 @@ function gitsync { # stash any changes, rebase from SVN and restore stash {{{
 } # }}}
 
 function avsync {
-  local t
   nice -n19 ionice -c 3 git checkout main
   nice -n19 ionice -c 3 git fetch --prune --tags --prune-tags
   nice -n19 ionice -c 3 git merge FETCH_HEAD
+  local t
   for t in min-ci lastci truck-lastci common_pull_point pbt-engdev-lastci sienna-engdev-lastci; do
     nice -n19 ionice -c 3 git fetch --force origin refs/tags/${t}:refs/tags/${t}
   done
@@ -169,24 +190,6 @@ function all-repo-clean { # clean out merged branches {{{
   done
 } # }}}
 
-function flow-rebase {
-  local OLD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  echo "Will switch back to $OLD_BRANCH when done"
-  git checkout master
-  git fetch --prune
-  git pull
-  bonsai show
-
-  if [[ "${1:-all}" == "all" ]]; then
-    bonsai cascade --rebase
-  else
-    for BRANCH in "$@"; do
-      bonsai cascade --rebase master "$BRANCH"
-    done
-  fi
-  bonsai branch "$OLD_BRANCH"
-  bonsai show
-}
 
 function prefix_path { # add a prefix to the path if it exists and isn't already in the path {{{
     [[ ! "$PATH" =~ $1 && -e "$1" ]] && export PATH="${1}:${PATH}"
@@ -244,12 +247,30 @@ function wayback {
   curl "https://web.archive.org/save/${1}"
 }
 
+function cdbazel {
+  BASEPATH="${1:-.}"
+  BASEPATH="${BASEPATH#//}"
+  TARGET_PATH="${BASEPATH%:*}"
+  # echo "Starting with $BASEPATH"
+  # echo "Trimmed suffix $TARGET_PATH"
+
+  cd "$(bazel info workspace 2>/dev/null)/$TARGET_PATH"
+}
+
+function rdeps {
+  bazel query --notool_deps "rdeps(//... - //experimental/... - //third_party/..., $1)"
+}
+
 # end functions }}}
 
 # EXPORTS - swanky variables {{{
 
 export EDITOR="vim"
+export BROWSER=/home/rmoore/bin/echobrowser
 export SRC_HOME=${HOME}/src
+export XDISPLAY="$DISPLAY"
+unset DISPLAY
+export AWS_SDK_LOAD_CONFIG=1
 
 # need gpg-agent ssh ability
 export SSH_AUTH_SOCK=${HOME}/.gnupg/S.gpg-agent.ssh
@@ -331,7 +352,7 @@ alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active fa
 alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
 alias xzmax='xz -9evv --lzma2=dict=128MiB,lc=4,lp=0,pb=2,mode=normal,nice=273,mf=bt4,depth=1024'
-alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter notebook --notebook-dir=${HOME}/src/personal/carnd'
+alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter notebook --notebook-dir=$HOME/working --ip=0.0.0.0 --no-browser && sleep 2 && juptmp=$(mktemp) && screen -S jupyter -p 0 -X hardcopy "$juptmp" && grep -om1 http.\* "$juptmp" | sed s/0\.0\.0\.0/rmoore.vdesk.cloud.aurora.tech/g && rm "$juptmp" && unset juptmp'
 alias nukedocker='ps -a -q | xargs --no-run-if-empty docker rm;docker image list -q | grep -v 7c09e61e9035 | xargs --no-run-if-empty docker rmi'
 alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins-master:/var/lib/jenkins/ ~/working/jenkins/'
 alias updateqa='ssh -t qabox ./update-qa.sh'
@@ -343,11 +364,31 @@ alias ubuntu='docker run --rm -it --mount type=bind,source=${HOME}/working,targe
 alias spacelift-container='docker run --rm -it public.ecr.aws/spacelift/runner-terraform:latest'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
 alias tfgo='terraform init && terraform get && terraform plan -out plan.out'
+alias tflock='terraform init -upgrade -lock=false -backend=false && terraform providers lock -platform=linux_amd64 && terraform providers lock -platform=linux_arm64 && terraform providers lock -platform=darwin_arm64'
 alias ident='figlet -w $COLUMNS -r $USER | lolcat -p 0.3'
 alias fedrate='curl -s https://fred.stlouisfed.org/data/MORTGAGE15US.txt | tail -1 | awk '\''{print "Fed rate for " $1 " is " $2}'\'''
 alias googsync='LOG_LEVEL=debug time bazel run //cloud/terraform:sso_admin -- sync-google --test-org --save-temp'
 alias awsfind='2>/dev/null bazel run //cloud/terraform:acct_mgr find'
 alias spaceliftdns='dig @8.8.8.8 +noall +answer +dnssec aurora-tech.app.spacelift.io'
+alias ubsan='bazel test --config clang --config ubsan -c dbg'
+alias tsan='bazel test --config clang --config tsan -c dbg'
+alias asan='bazel test --config clang --config asan -c dbg'
+alias Xubsan='bazel test --config clang --config ubsan -c dbg --runs_per_test=100'
+alias Xtsan='bazel test --config clang --config tsan -c dbg --runs_per_test=100'
+alias Xasan='bazel test --config clang --config asan -c dbg --runs_per_test=100'
+alias kick-crypt='gpg -ear rmoore@aurora.tech <<< "hello" | gpg -qd > /dev/null'
+alias webserver='screen -dmS webserver python3 -m http.server 8080'
+alias goodiotop='sudo bash -c "sysctl kernel.task_delayacct=1 && iotop -o -d5 -P; sysctl kernel.task_delayacct=0"'
+alias pynt='bazel test --config=python_next --config=intel-cuda --cache_test_results=no --build_tests_only --test_tag_filters=av_py_target,-broken-python-next,-local,-no-buildkite,-gui,-integration,-requires-network --test_lang_filters=py'
+# alias bkpynt='bazel --nohome_rc test --trim_test_configuration --//build:in_build_ci_flag=True --test_summary=terse --test_output=errors --noshow_progress --config=python_next --config=intel-cuda --build_tag_filters=av_py_target,-broken-python-next,-packaging --config=buildkite_output --profile=profile-test.gz --build_event_binary_file=build-events-test.bin --config=ci --build_tests_only --test_timeout=30,120,300,900 --test_size_filters=small,medium,large --test_tag_filters=av_py_target,-broken-python-next,-local,-no-buildkite,-gui,-integration,-requires-network'
+alias tagbroken='buildozer "add tags broken-python-next"'
+alias untagbroken='buildozer "remove tags broken-python-next"'
+alias bkpynt='$(./tools/bin/build_plan.par --command=test python-next) > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.$(date +%Y-%m-%dT%H.%M).txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.$(date +%Y-%m-%dT%H.%M).txt)'
+alias bkpyntY='$(./tools/bin/build_plan.par --command=test --command_flags=--noremote_accept_cached  python-next) > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.txt)'
+alias bkpyntX='$(./tools/bin/build_plan.par --command=test --command_flags=--remote_executor=,--remote_cache=  python-next-all-tests) > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.txt)'
+alias freezedeps='bazel run //common/python/pip:freeze_dependencies -- python_37 python_310 python_aarch64 --yes_to_prompt'
+alias molly='bazel run //tools/monorepo/molly:molly'
+alias repro='bazel test --config=python_next --config=intel-cuda --cache_test_results=no --build_tests_only //experimental/rmoore/pynext:torch_repro_generated_tests'
 
 # end aliases }}}
 
@@ -375,12 +416,12 @@ checkruneval thefuck --alias
 #checkruneval minikube completion bash
 checkruneval kubectl completion bash
 checkruneval kops completion bash
-source <(cd ~/src/av;bonsai completion dump bash)
+# bonsai completion, but only for interactive shells
+grep -q i <<< $- && source <(cd ~/src/av;bonsai completion dump bash)
 
 # end etc }}}
 
 #eof
-alias avgitsync=" rsync -a --no-i-r --info=progress2 ~/src/av/ palpatine:~/working/av/"
 
 
 
