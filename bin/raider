@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -x
+
+readarray -t VOLUMES < <(lsblk --include 259 -o NAME,MODEL --list --paths | awk '/Instance Storage/{print $1}')
+
+echo "Length of VOLUMES: ${#VOLUMES[@]}"
+echo "VOLUMES: ${VOLUMES[@]}"
+mdadm --create --verbose /dev/md0 --level=0 --name=EPHEMERAL --run --delay=60 --raid-devices=${#VOLUMES[@]} ${VOLUMES[@]}
+
+mkfs.ext4 -L EPHEMERAL /dev/md0
+mount LABEL=EPHEMERAL /ephemeral
+
+#lsblk --include 259 -o NAME,MODEL --list | awk '/Instance Storage/{print $1}' | xargs sudo mdadm --create --verbose /dev/md0 --level=0 --name=MY_RAID --raid-devices=number_of_volumes ^C

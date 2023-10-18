@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+bazel clean --expunge
+bazel shutdown
+rm -fr ~/.cache/bazel ~/.cache/bazelisk
+
+set -e
+bazel info
