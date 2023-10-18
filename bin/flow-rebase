@@ -30,7 +30,9 @@ benice bonsai tidy
 git rev-parse --verify --quiet "$OLD_BRANCH" || OLD_BRANCH="main"
 echo "Will switch to $OLD_BRANCH when done"
 
-benice git fetch --prune --tags --prune-tags || true
+SAFE_PULL=$(cat .git/safe_pull)
+
+benice git fetch --prune --tags --prune-tags origin ${SAFE_PULL} || true
 benice git merge FETCH_HEAD
 for t in min-ci lastci truck-lastci common_pull_point pbt-engdev-lastci sienna-engdev-lastci; do
   benice git fetch --force origin refs/tags/${t}:refs/tags/${t} || true
@@ -40,8 +42,8 @@ bonsai show
 
 if [[ "${1:-safe}" == "safe" ]]; then
   echo "Cascading safe branches"
-  benice bonsai cascade --rebase main zzsafe && \
-    benice bonsai branch zzsafe && \
+  benice bonsai cascade --rebase main {safe} && \
+    benice bonsai branch {safe} && \
     benice bonsai cascade --rebase || true
 elif [[ "${1:-safe}" == "none" ]]; then
   echo "Skipping auto-cascade"
