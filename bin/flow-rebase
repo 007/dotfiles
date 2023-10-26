@@ -30,13 +30,20 @@ benice bonsai tidy
 git rev-parse --verify --quiet "$OLD_BRANCH" || OLD_BRANCH="main"
 echo "Will switch to $OLD_BRANCH when done"
 
-SAFE_PULL=$(cat .git/safe_pull)
-
-benice git fetch --prune --tags --prune-tags origin ${SAFE_PULL} || true
-benice git merge FETCH_HEAD
 for t in min-ci lastci truck-lastci common_pull_point pbt-engdev-lastci sienna-engdev-lastci; do
   benice git fetch --force origin refs/tags/${t}:refs/tags/${t} || true
 done
+
+# get our "safe pull" via //experimental/rmoore/tools/monorepo:safe_pull_point
+SAFE_PULL=$(cat .git/safe_pull)
+# use at least min-ci if there are no newer builds
+SAFE_PULL=$(git merge-base min-ci --is-ancestor $SAFE_PULL && echo $SAFE_PULL || git rev-list -n1 refs/tags/min-ci)
+# fetch up to our safe pull
+benice git fetch --prune --tags --prune-tags origin ${SAFE_PULL} || true
+# manually tweak remote so we "don't know anything" past our safe pull
+echo "${SAFE_PULL}" > .git/refs/remotes/origin/main
+# merge updates
+benice git merge FETCH_HEAD
 
 bonsai show
 
