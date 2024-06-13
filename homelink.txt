@@ -1,9 +1,0 @@
-.bash_logout
-.gitconfig
-.gitexcludes
-.gnupg
-.selected_editor
-.ssh
-.vim
-.vimrc
-bin

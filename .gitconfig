@@ -1,10 +1,10 @@
 # see https://git-scm.com/docs/git-config for definitions
 [user]
-	email = rmoore@aurora.tech
 	name = Ryan Moore
-	signingkey = 0723BCF14E50AAF4837292C4AC150A1ED0BEA02E
-[commit]
-	gpgsign = true
+	email = rmoore@lambdal.com
+# 	signingkey = 0723BCF14E50AAF4837292C4AC150A1ED0BEA02E
+# [commit]
+# 	gpgsign = true
 [core]
 	abbrev=16
 	excludesfile=~/.gitignore
