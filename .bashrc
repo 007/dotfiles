@@ -23,6 +23,10 @@ unset DISPLAY
 export AWS_SDK_LOAD_CONFIG=1
 export BASH_SILENCE_DEPRECATION_WARNING=1 # yes apple, I want to use bash
 
+# go config
+export GOCACHE="${HOME}/.cache/go"
+export GOMODCACHE="${HOME}/.cache/go/pkg/mod"
+
 # end exports }}}
 
 # SHELL - magic shell incantations {{{
@@ -88,6 +92,7 @@ prefix_path "/opt/homebrew/sbin"
 prefix_path "/opt/homebrew/bin"
 prefix_path "${HOME}/bin"
 prefix_path "${HOME}/anaconda3/bin"
+suffix_path "${HOME}/.local/bin"
 
 # end paths }}}
 
