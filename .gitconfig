@@ -17,7 +17,7 @@
 [push]
 	default = current
 [init]
-	templatedir = ~/dotfiles/githooks
+	#templatedir = ~/dotfiles/githooks
   defaultBranch = main
 [diff]
 	tool = p4merge
@@ -85,3 +85,48 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[maintenance]
+	repo = /Users/ryan.moore
+	repo = /Users/ryan.moore/src/aap-collections
+	repo = /Users/ryan.moore/src/aap-execenvs
+	repo = /Users/ryan.moore/src/aap-installer
+	repo = /Users/ryan.moore/src/ansible-apparmor
+	repo = /Users/ryan.moore/src/ansible-artifactory_cluster
+	repo = /Users/ryan.moore/src/ansible-autofs
+	repo = /Users/ryan.moore/src/ansible-bridge-cluster-oci
+	repo = /Users/ryan.moore/src/ansible-consul_agent
+	repo = /Users/ryan.moore/src/ansible-datadog_lambda
+	repo = /Users/ryan.moore/src/ansible-dns_resolvers
+	repo = /Users/ryan.moore/src/ansible-libvirt
+	repo = /Users/ryan.moore/src/ansible-lint-buildkite-pipeline
+	repo = /Users/ryan.moore/src/ansible-prometheus
+	repo = /Users/ryan.moore/src/ansible-template
+	repo = /Users/ryan.moore/src/ansible-tuxcare_client
+	repo = /Users/ryan.moore/src/ansible-tuxcare_server
+	repo = /Users/ryan.moore/src/cloud-infra-automation
+	repo = /Users/ryan.moore/src/cloud-infra-tools
+	repo = /Users/ryan.moore/src/cloud-net-automation
+	repo = /Users/ryan.moore/src/eng-standards
+	repo = /Users/ryan.moore/src/event-driven-ansible
+	repo = /Users/ryan.moore/src/lambdacloudlib
+	repo = /Users/ryan.moore/src/ll-terraform
+	repo = /Users/ryan.moore/src/ops-ansible
+	repo = /Users/ryan.moore/src/terraform-artifactory
+	repo = /Users/ryan.moore/src/terraform-aws-iam
+	repo = /Users/ryan.moore/src/terraform-aws-infrastructure
+	repo = /Users/ryan.moore/src/terraform-customer-configs
+	repo = /Users/ryan.moore/src/terraform-github-runners
+	repo = /Users/ryan.moore/src/terraform-lambda-facts
+	repo = /Users/ryan.moore/src/terraform-null-meta
+	repo = /Users/ryan.moore/src/terraform-oci-customer-base
+	repo = /Users/ryan.moore/src/terraform-oci-customer-instances
+	repo = /Users/ryan.moore/src/terraform-oci-hypervisor-network
+	repo = /Users/ryan.moore/src/terraform-oci-hypervisors
+	repo = /Users/ryan.moore/src/terraform-oci-infra-network
+	repo = /Users/ryan.moore/src/terraform-oci-infrastructure
+	repo = /Users/ryan.moore/src/terraform-tfcloud-workspaces
+	repo = /Users/ryan.moore/src/terraform-tools
+	repo = /Users/ryan.moore/src/terraform-vault-management
+	repo = /Users/ryan.moore/src/terraform-vault-mtls
+	repo = /Users/ryan.moore/src/terraform-vault-team-module
+	repo = /Users/ryan.moore/src/terraform-vault-teams
