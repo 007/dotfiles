@@ -5,11 +5,14 @@
 .bash_history
 .bash_profile
 .cache
+.config/containers
 .config/iterm2
+.config/op
 .cups
 .eclipse
 .history
 .lesshst
+.local
 .localized
 .serverauth.*
 .ssh/id_*
@@ -27,4 +30,3 @@ Pictures
 Public
 src
 working
-.local
