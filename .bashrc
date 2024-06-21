@@ -84,6 +84,8 @@ prefix_path /usr/local/git/bin
 prefix_path /usr/local/pear/bin
 prefix_path /Applications/Xcode.app/Contents/Developer/usr/bin
 prefix_path "/usr/local/opt/coreutils/libexec/gnubin"
+prefix_path "/opt/homebrew/sbin"
+prefix_path "/opt/homebrew/bin"
 prefix_path "${HOME}/bin"
 prefix_path "${HOME}/anaconda3/bin"
 
@@ -105,3 +107,10 @@ checkruneval kubectl completion bash
 # end etc }}}
 
 #eof
+
+# [[ ! "$PATH" =~ $1 && -e "$1" ]] && export PATH="${1}:${PATH}"
+export HOMEBREW_PREFIX="/opt/homebrew";
+export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
+export HOMEBREW_REPOSITORY="/opt/homebrew";
+export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:";
+export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";

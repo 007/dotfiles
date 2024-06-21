@@ -57,3 +57,5 @@ alias bkpyntX='$(./tools/bin/build_plan.par --command=test --command_flags=--rem
 alias freezedeps='bazel run //common/python/pip:freeze_dependencies -- python_37 python_310 python_aarch64 --yes_to_prompt'
 alias molly='bazel run //tools/monorepo/molly:molly'
 alias repro='bazel test --config=python_next --config=intel-cuda --cache_test_results=no --build_tests_only //experimental/rmoore/pynext:torch_repro_generated_tests'
+
+alias docker='podman'
