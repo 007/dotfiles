@@ -1,5 +1,11 @@
 #!/bin/bash
 
+function auth-invalidate {
+  perl -pi -e 's/"expiry":"20\d\d-\d\d-\d\dT\d\d:\d\d:\d\dZ"/"expiry":"2024-01-01T12:34:56Z"/g' ~/.infra/conf/user/AWS_AUTH_STORE/'settings#.conf'
+  perl -pi -e 's/"ExpiresIn":\d+/"ExpiresIn":1234567890/g' ~/.infra/conf/user/AWS_ACCESS_KEY/'settings#.conf'
+  infra auth refresh
+}
+
 function vanity {
   while ! git rev-parse HEAD | grep -Eq '^(00+7)';do git rev-parse HEAD;git commit --amend --no-edit;done
 }
@@ -20,6 +26,23 @@ function fastfreeze {
     sleep 5
   done
 }
+
+function massivebump {
+  bonsai branch python-next-unused-cleanup-pre-freeze && \
+  time bazel run //common/python/pip:freeze_dependencies -- python_37 python_310 python_aarch64 --yes_to_prompt && \
+  git add -u && \
+  git commit -m "[python] update python package locks" && \
+  bonsai cascade --rebase && \
+  bonsai branch python-next-unused-cleanup-simple-freeze && \
+  time bazel run //common/python/pip:freeze_dependencies -- python_37 python_310 python_aarch64 --yes_to_prompt && \
+  git add -u && \
+  git commit -m "[python] update and freeze deps after cleanup"
+}
+
+function testeverything {
+time bazel test --config=python_next --build_tests_only --keep_going --test_tag_filters=av_py_target,-av-py-generated,-broken-python-next,-local,-no-buildkite,-gui,-integration,-requires-network --test_lang_filters=py -- //... -//experimental/... > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.txt)
+}
+
 
 # FUNCTIONS - more complicated mojo {{{
 function assume-aws-role {
@@ -265,6 +288,10 @@ function rdeps {
 
 # EXPORTS - swanky variables {{{
 
+export GOCACHE="/home/rmoore/.cache/go"
+export GOMODCACHE="/home/rmoore/.cache/go/pkg/mod"
+export BONSAI_CASCADE_NO_FORK_POINT=1
+export VAULT_ADDR=https://vault.cloud.aurora.tech:8200
 export EDITOR="vim"
 export BROWSER=/home/rmoore/bin/echobrowser
 export SRC_HOME=${HOME}/src
@@ -342,6 +369,7 @@ alias ll='ls -alF --color=auto'
 alias emacs="emacs -nw"
 alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
+alias fetchbazel="bazel shutdown && screen -dmS fetchbazel nice -n19 ionice -c 3 nocache bazel fetch --loading_phase_threads=$(($(nproc) * 8)) --keep_going -- '//... - //experimental/...'"
 alias ..="cd .."
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 alias gitgc='nice -n19 ionice -c 3 git repack -a -d -f --depth=1000 --window=500'
@@ -363,7 +391,7 @@ alias k8slogin='bazel run //cloud/terraform:aws_auth -- k8s'
 alias ubuntu='docker run --rm -it --mount type=bind,source=${HOME}/working,target=/working ubuntu:focal'
 alias spacelift-container='docker run --rm -it public.ecr.aws/spacelift/runner-terraform:latest'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
-alias tfgo='terraform init && terraform get && terraform plan -out plan.out'
+alias tfgo='terraform init && terraform get && terraform apply'
 alias tflock='terraform init -upgrade -lock=false -backend=false && terraform providers lock -platform=linux_amd64 && terraform providers lock -platform=linux_arm64 && terraform providers lock -platform=darwin_arm64'
 alias ident='figlet -w $COLUMNS -r $USER | lolcat -p 0.3'
 alias fedrate='curl -s https://fred.stlouisfed.org/data/MORTGAGE15US.txt | tail -1 | awk '\''{print "Fed rate for " $1 " is " $2}'\'''
@@ -386,7 +414,7 @@ alias untagbroken='buildozer "remove tags broken-python-next"'
 alias bkpynt='$(./tools/bin/build_plan.par --command=test python-next) > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.$(date +%Y-%m-%dT%H.%M).txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.$(date +%Y-%m-%dT%H.%M).txt)'
 alias bkpyntY='$(./tools/bin/build_plan.par --command=test --command_flags=--noremote_accept_cached  python-next) > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.txt)'
 alias bkpyntX='$(./tools/bin/build_plan.par --command=test --command_flags=--remote_executor=,--remote_cache=  python-next-all-tests) > >(ts %Y-%m-%d:%H:%M:%.S | tee stdout.txt) 2> >(ts %Y-%m-%d:%H:%M:%.S | tee stderr.txt)'
-alias freezedeps='bazel run //common/python/pip:freeze_dependencies -- python_37 python_310 python_aarch64 --yes_to_prompt'
+alias freezedeps='screen -dmS freezedeps bazel run //common/python/pip:freeze_dependencies -- python_310 python_aarch64 --yes_to_prompt && screen -r freezedeps'
 alias molly='bazel run //tools/monorepo/molly:molly'
 alias repro='bazel test --config=python_next --config=intel-cuda --cache_test_results=no --build_tests_only //experimental/rmoore/pynext:torch_repro_generated_tests'
 
@@ -401,6 +429,7 @@ prefix_path /Applications/Xcode.app/Contents/Developer/usr/bin
 prefix_path "/usr/local/opt/coreutils/libexec/gnubin"
 prefix_path "${HOME}/bin"
 prefix_path "${HOME}/anaconda3/bin"
+suffix_path "${HOME}/.local/bin"
 
 # end paths }}}
 

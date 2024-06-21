@@ -5,6 +5,14 @@ function benice {
   nice ionice --ignore --class 2 --classdata 7 "$@"
 }
 
+function newer_commit {
+  local ref="$1"
+  local commit="$2"
+  git merge-base ${ref} --is-ancestor $commit && echo $commit || git rev-list -n1 ${ref}
+# refs/tags/${tag}
+}
+
+
 set -x
 OLD_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
@@ -24,6 +32,8 @@ EOF
 
 
 benice git checkout main
+# tag current main as our pull point, let it be overridden by anything newer
+COMMON_PULL=$(git rev-parse --verify main)
 benice bonsai tidy
 
 # check to see if we deleted our old branch as part of tidy
@@ -33,18 +43,31 @@ echo "Will switch to $OLD_BRANCH when done"
 for t in min-ci lastci truck-lastci common_pull_point pbt-engdev-lastci sienna-engdev-lastci; do
   benice git fetch --force origin refs/tags/${t}:refs/tags/${t} || true
 done
+benice git fetch --force origin main || true
+benice git fetch --force origin common/main/latest:common/main/latest || true
 
+# use at least min-ci
+COMMON_PULL=$(newer_commit refs/tags/min-ci $COMMON_PULL)
 # get our "safe pull" via //experimental/rmoore/tools/monorepo:safe_pull_point
-SAFE_PULL=$(cat .git/safe_pull)
-# use at least min-ci if there are no newer builds
-SAFE_PULL=$(git merge-base min-ci --is-ancestor $SAFE_PULL && echo $SAFE_PULL || git rev-list -n1 refs/tags/min-ci)
-# fetch up to our safe pull
-benice git fetch --prune --tags --prune-tags origin ${SAFE_PULL} || true
+COMMON_PULL=$(newer_commit $(cat ~/src/av/.git/safe_pull) $COMMON_PULL)
+# use common_pull_point if it's newer
+COMMON_PULL=$(newer_commit refs/tags/common_pull_point $COMMON_PULL)
+# use actual common pull if it's newer
+COMMON_PULL=$(newer_commit common/main/latest $COMMON_PULL)
+benice git fetch --prune --tags --prune-tags origin ${COMMON_PULL} || true
 # manually tweak remote so we "don't know anything" past our safe pull
-echo "${SAFE_PULL}" > .git/refs/remotes/origin/main
+git update-ref refs/remotes/origin/main "${COMMON_PULL}"
+#echo "${COMMON_PULL}" > ~/src/av/.git/refs/remotes/origin/main
 # merge updates
 benice git merge FETCH_HEAD
 
+benice git merge FETCH_HEAD
+
+# benice git checkout common/main/latest
+# benice git fetch origin common/main/latest
+# benice git merge FETCH_HEAD
+
+benice git checkout main
 bonsai show
 
 if [[ "${1:-safe}" == "safe" ]]; then
