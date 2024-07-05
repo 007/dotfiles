@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -u
+
+# Set this if you want to use something other than `${HOME}/src` as your work-checkout-root
+GIT_SRC_DIR=${GIT_SRC_DIR:-~/src}
+
+# check if we have some necessary tools installed
+type -P "git" > /dev/null || { echo "Need git installed, \`brew install git\`"; exit 1; }
+
+# define color escapes
+RED=$(tput setaf 1)
+GRN=$(tput setaf 2)
+YLW=$(tput setaf 3)
+CYN=$(tput setaf 6)
+WHT=$(tput setaf 7)
+GRY=$(tput setaf 8)
+BWH=$(tput setaf 15)
+RST=$(tput sgr0)
+
+echo "Checking Status"
+cd "${GIT_SRC_DIR}"
+# subshell so we can pipe the whole thing to `column`
+# TODO: rewrite this in a real language
+(
+echo "${BWH}Repo${RST} ${BWH}Branch${RST} ${BWH}State${RST} ${BWH}Upstream${RST}"
+for x in *; do
+  [[ -d "${x}/.git/" ]] || continue
+  (
+    cd "${x}"
+    BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    STATE=$(git diff --exit-code HEAD > /dev/null && echo "${GRN}clean${RST}" || echo "${RED}dirty${RST}")
+
+    UPSTREAM=$(git branch -vv | grep '^\*' | cut -d\[ -f2 | cut -d\] -f1 | cut -d\  -f2- | sed 's/ /_/g')
+    if [[ $UPSTREAM == "origin/main" ]] ; then
+      UPSTREAM="${GRY}${UPSTREAM}${RST}"
+    elif grep -q 'gone$' <<< "$UPSTREAM" ; then
+      UPSTREAM="${RED}${UPSTREAM}${RST}"
+    elif grep -q '^behind' <<< "$UPSTREAM" ; then
+      UPSTREAM="${YLW}${UPSTREAM}${RST}"
+    else
+      UPSTREAM="${GRN}${UPSTREAM}${RST}"
+    fi
+
+    if [[ $BRANCH == "main" ]] ; then
+      BRANCH="${WHT}${BRANCH}${RST}"
+    else
+      BRANCH="${CYN}${BRANCH}${RST}"
+    fi
+
+    echo "${WHT}${x}${RST} ${BRANCH} ${STATE} ${UPSTREAM}"
+  )
+
+done
+) | column -t
