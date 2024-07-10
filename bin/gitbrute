@@ -1,0 +1,26 @@
+#!/bin/bash
+
+trap 'git log -n1 --pretty=fuller' EXIT
+
+function commit_and_check {
+  local ATIME=$1
+  local CTIME=$2
+  GIT_COMMITTER_DATE="$CTIME" git commit --amend --no-edit --allow-empty --date="$ATIME" > /dev/null
+  git rev-parse --short=4 HEAD | grep -q ^007 && exit 0
+} 
+
+ATIME=$(git log -n1 --format=%at)
+CTIME=$(git log -n1 --format=%ct)
+
+for c in $(seq 0 43200); do
+  for a in $(seq 0 43200); do
+    commit_and_check $((ATIME - a)) $((CTIME + c))
+    [[ $a -gt $c ]] && commit_and_check $((ATIME - a)) $((CTIME - c))
+  done
+done
+
+# put back
+trap - EXIT
+commit_and_check $ATIME $CTIME
+echo "didn't find a match"
+exit 1
