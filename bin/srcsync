@@ -40,7 +40,7 @@ type -P "tmutil" > /dev/null && tmutil snapshot
 echo "Checking for missing repos"
 cd ${LAMBDA_SRC_DIR}/pristine
 for x in $(gh repo list lambdal --source --no-archived --limit 999 --json name --jq '.[]|.name'); do
-  [[ -d "${x}/.git/" ]] || sem -j -2 --id srcsync.clone git clone git@github.com:lambdal/${x}.git 1>&2
+  [[ -d "${x}/.git/" ]] || echo "$x" && sem -j -2 --id srcsync.clone git clone git@github.com:lambdal/${x}.git 1>&2
 done
 sem --id srcsync.clone --st -300 --wait
 
