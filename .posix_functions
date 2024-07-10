@@ -58,11 +58,10 @@ function tax { # syntax hilighting command {{{
   fi
 
   for S in "$@"; do
-    # if file has a suffix, lex as-is
-    pygmentize -O style=$style -f terminal256 "$S";done
-
-    # if not, guess-and-lex
-    #cat "$S" | pygmentize -C
+    # print guessed parser from filename
+    # pygmentize -N "$S"
+    pygmentize -O style=$style -f terminal256 "$S" 2> /dev/null || pygmentize -O style=$style -f terminal256 -g "$S"
+  done
 } # }}}
 
 function sniff_basics { # fix basic errors found in sniff {{{
