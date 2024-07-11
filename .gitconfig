@@ -1,10 +1,10 @@
 # see https://git-scm.com/docs/git-config for definitions
 [user]
 	name = Ryan Moore
-	email = rmoore@lambdal.com
-# 	signingkey = 0723BCF14E50AAF4837292C4AC150A1ED0BEA02E
-# [commit]
-# 	gpgsign = true
+	email = ryan.moore@lambdal.com
+	signingkey = ~/.ssh/id_ed25519.pub
+[commit]
+	gpgsign = true
 [core]
 	abbrev=16
 	excludesfile=~/.gitignore
@@ -130,3 +130,7 @@
 	repo = /Users/ryan.moore/src/terraform-vault-mtls
 	repo = /Users/ryan.moore/src/terraform-vault-team-module
 	repo = /Users/ryan.moore/src/terraform-vault-teams
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	allowedSignersFile = ~/.config/git/allowed_signers
