@@ -1,39 +1,77 @@
-#!python3
-import concurrent.futures
+#!/usr/bin/env python3
 
+import concurrent.futures
+import os
+import re
+import subprocess
 from multiprocessing import cpu_count
+from typing import List
+
+
+def run_command(cmd: List[str], *, stdin: str = None) -> str:
+    p = subprocess.run(cmd, capture_output=True, text=True, input=stdin)
+    if p.returncode == 0:
+        return p.stdout
+    return None
 
 
 def get_commit_object():
-    # start with verify-commit -v since it will give us the unsigned commit if it's already signed
-    COMMIT_OBJECT = "$(git verify-commit HEAD -v)"
+    o = run_command(["git", "verify-commit", "HEAD^", "-v"])
+    if o is None:
+        o = run_command(["git", "cat-file", "commit", "HEAD^"])
+    return o.rstrip()
 
-    # if that failed, the commit isn't signed, so just cat-file
-    COMMIT_OBJECT = "$(git cat-file commit HEAD)"
 
+def make_commit_template(commit_object: str = None) -> str:
+    if commit_object is None:
+        commit_object = get_commit_object()
+    print(f"original was '{commit_object}'")
 
-def make_commit_template():
-    commit_object = """tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
-parent 750d382e8030dd5d4d3e0b3cf35c6597b05f69c1
-author Ryan Moore <ryan.moore@lambdal.com> 1720721597 -0700
-committer Ryan Moore <ryan.moore@lambdal.com> 1720721597 -0700
+    done_with_headers = False
+    commit_template = []
+    for l in commit_object.split("\n"):
+        if not done_with_headers:
+            if l == "":
+                done_with_headers = True
+                commit_template.append("{gpgsig}")
+                continue
 
-also empty, not signed"""
+            l = re.sub(r"^(author .*) [0-9]+ (-[0-9]+)$", r"\1 {atime} \2", l)
+            l = re.sub(r"^(committer .*) [0-9]+ (-[0-9]+)$", r"\1 {ctime} \2", l)
 
-    COMMIT_TEMPLATE = "$(sed -E 's/^(author .*) [0-9]+ (-[0-9]+)$/\1 ${ATIME} \2/g' <<< '$COMMIT_OBJECT')"
-    COMMIT_TEMPLATE = "$(sed -E 's/^(committer .*) [0-9]+ (-[0-9]+)$/\1 ${CTIME} \2/g' <<< '$COMMIT_TEMPLATE')"
+        commit_template.append(l)
+
+    return "\n".join(commit_template) + "\n"
 
 
 def gen_sig(s: str) -> str:
-    SIG = "$(envsubst '$ATIME $CTIME' <<< ${COMMIT_TEMPLATE} | ssh-keygen -Y sign -f ~/.ssh/id_ed25519 -n git 2>/dev/null | sed 's/^/ /g')"
+    ssh_keygen_cmd = ["ssh-keygen", "-Y", "sign", "-f", os.path.expanduser("~/.ssh/id_ed25519"), "-n", "git"]
+    result = run_command(ssh_keygen_cmd, stdin=s)
+    return result.rstrip()
 
 
-def sign_commit_object(s: str) -> str:
-    SIG = "$(envsubst '$ATIME $CTIME' <<< ${COMMIT_TEMPLATE} | ssh-keygen -Y sign -f ~/.ssh/id_ed25519 -n git 2>/dev/null | sed 's/^/ /g')"
-    envsubst("$ATIME $CTIME $SIG", "${SIG_TEMPLATE}")
+def sign_commit_object(s: str, *, atime: int, ctime: int) -> str:
+    filled_template = s.format(atime=atime, ctime=ctime, gpgsig='')
+    print(f"signing '{filled_template}'")
+    signature = gen_sig(filled_template)
+    print(f"got signature '{signature}'")
+
+    # Prepend a space to each line of the output
+    signed_output = "\n".join(" " + line for line in signature.split("\n"))
+
+    # no space after gpgsig since signed_output is already padded
+    # BUT we do need to append \n since we needed to strip the extra CR to avoid " \n" extra padding
+    signed_output = s.format(atime=atime, ctime=ctime, gpgsig="gpgsig" + signed_output + "\n")
+    return signed_output
 
 
 def get_commit_hash(s: str) -> str:
+
+    print(f"Checking hash of '{s}'")
+    get_hash_cmd = ["git", "hash-object", "-t", "commit", "--stdin"]
+    git_hash = run_command(get_hash_cmd, stdin=s)
+    print(f"Generated hash {git_hash}")
+    return git_hash
     command = """
     git hash-object -t commit --stdin | \
     grep -q ^007 && \
@@ -114,3 +152,10 @@ def check_sig(atime, ctime):
 #                             not_done.add(executor.submit(get_links, clean_url))
 #
 #     return list(visited)
+if __name__ == "__main__":
+    o = run_command(["git", "cat-file", "commit", "HEAD^"])
+    ohash = get_commit_hash(o)
+
+    t = make_commit_template()
+    signed_obj = sign_commit_object(t, atime=1720651680, ctime=1720651736)
+    print(signed_obj == o)
