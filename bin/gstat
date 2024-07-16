@@ -5,6 +5,9 @@ set -u
 # Set this if you want to use something other than `${HOME}/src` as your work-checkout-root
 GIT_SRC_DIR=${GIT_SRC_DIR:-~/src}
 
+# allow for subdir but don't fail if not specified
+GIT_SRC_DIR="${GIT_SRC_DIR}/${1:-}"
+
 # check if we have some necessary tools installed
 type -P "git" > /dev/null || { echo "Need git installed, \`brew install git\`"; exit 1; }
 
