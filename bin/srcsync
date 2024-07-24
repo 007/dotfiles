@@ -40,7 +40,7 @@ type -P "tmutil" > /dev/null && tmutil snapshot
 echo "Checking for missing repos"
 cd ${LAMBDA_SRC_DIR}/pristine
 for x in $(gh repo list lambdal --source --no-archived --limit 999 --json name --jq '.[]|.name'); do
-  [[ -d "${x}/.git/" ]] || echo "$x" && sem -j -2 --id srcsync.clone git clone git@github.com:lambdal/${x}.git 1>&2
+  [[ -d "${x}/.git/" ]] || (echo -n "$x " && git clone git@github.com:lambdal/${x}.git 1>&2 && echo -e '\xe2\x9c\x85')
 done
 sem --id srcsync.clone --st -300 --wait
 
@@ -53,6 +53,7 @@ for x in * pristine/*; do
   sem -j -2 --id srcsync.update echo $x ';' \
     cd "$x" ';' \
     git diff --exit-code HEAD '>' /dev/null '&&' \
+    git fetch --prune --tags --prune-tags origin '&&' \
     git pull '&&' \
     git restore-mtime -q 1>&2
 done
