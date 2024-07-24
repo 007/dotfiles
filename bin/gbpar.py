@@ -4,6 +4,7 @@ import concurrent.futures
 import os
 import re
 import subprocess
+import sys
 from multiprocessing import cpu_count
 from typing import List
 
@@ -16,16 +17,15 @@ def run_command(cmd: List[str], *, stdin: str = None) -> str:
 
 
 def get_commit_object():
-    o = run_command(["git", "verify-commit", "HEAD^", "-v"])
+    o = run_command(["git", "verify-commit", "HEAD", "-v"])
     if o is None:
-        o = run_command(["git", "cat-file", "commit", "HEAD^"])
+        o = run_command(["git", "cat-file", "commit", "HEAD"])
     return o.rstrip()
 
 
 def make_commit_template(commit_object: str = None) -> str:
     if commit_object is None:
         commit_object = get_commit_object()
-    print(f"original was '{commit_object}'")
 
     done_with_headers = False
     commit_template = []
@@ -51,10 +51,8 @@ def gen_sig(s: str) -> str:
 
 
 def sign_commit_object(s: str, *, atime: int, ctime: int) -> str:
-    filled_template = s.format(atime=atime, ctime=ctime, gpgsig='')
-    print(f"signing '{filled_template}'")
+    filled_template = s.format(atime=atime, ctime=ctime, gpgsig="")
     signature = gen_sig(filled_template)
-    print(f"got signature '{signature}'")
 
     # Prepend a space to each line of the output
     signed_output = "\n".join(" " + line for line in signature.split("\n"))
@@ -66,47 +64,60 @@ def sign_commit_object(s: str, *, atime: int, ctime: int) -> str:
 
 
 def get_commit_hash(s: str) -> str:
-
-    print(f"Checking hash of '{s}'")
     get_hash_cmd = ["git", "hash-object", "-t", "commit", "--stdin"]
     git_hash = run_command(get_hash_cmd, stdin=s)
-    print(f"Generated hash {git_hash}")
     return git_hash
-    command = """
-    git hash-object -t commit --stdin | \
-    grep -q ^007 && \
-    (
-      GIT_COMMITTER_DATE="$CTIME" git commit --amend --no-edit --allow-empty --date="$ATIME" > /dev/null && \
-      git rev-parse HEAD
-    ) && \
-    exit
-"""
 
 
 def get_commit_atime(commit="HEAD"):
-    return git(f"log -n1 {commit} --format=%at")
+    atime_cmd = ["git", "log", "-n1", commit, "--format=%at"]
+    atime = run_command(atime_cmd)
+    return int(atime)
 
 
 def get_commit_ctime(commit="HEAD"):
-    return git(f"log -n1 {commit} --format=%ct")
+    ctime_cmd = ["git", "log", "-n1", commit, "--format=%ct"]
+    ctime = run_command(ctime_cmd)
+    return int(ctime)
 
 
-def check_sig(atime, ctime):
+def check_in_with_ctime_atime(*, ctime, atime):
+    os.environ["GIT_COMMITTER_DATE"] = str(ctime)
+    commit_cmd = ["git", "commit", "--amend", "--no-edit", "--allow-empty", "--gpg-sign", f"--date={atime}"]
+    result = run_command(commit_cmd)
+    return result
 
-    return get_commit_atime() == 123
+
+def check_sig(template, atime, ctime, desired_match):
+    signed_obj = sign_commit_object(template, atime=atime, ctime=ctime)
+    commit_hash = get_commit_hash(signed_obj)
+    if commit_hash.startswith(desired_match):
+        print(f"GIT_COMMITTER_DATE={ctime} git commit --amend --no-edit --allow-empty --gpg-sign --date={atime}")
+        sys.exit(0)
+        return True
+    return False
 
 
-#
-#   export SIG="$(envsubst '$ATIME $CTIME' <<< "${COMMIT_TEMPLATE}" | ssh-keygen -Y sign -f ~/.ssh/id_ed25519 -n git 2>/dev/null | sed 's/^/ /g')"
-#   export SIG_TEMPLATE="$(sed -E 's/^(committer .*)$/\1\ngpgsig${SIG}/g' <<< "$COMMIT_TEMPLATE")"
-#   envsubst '$ATIME $CTIME $SIG' <<< "${SIG_TEMPLATE}" | \
-#     git hash-object -t commit --stdin | \
-#     grep -q ^007 && \
-#     (
-#       GIT_COMMITTER_DATE="$CTIME" git commit --amend --no-edit --allow-empty --date="$ATIME" > /dev/null && \
-#       git rev-parse HEAD
-#     ) && \
-#     exit
+def pairwise_explore_range(range_max=10):
+    # efficient-ish minimum-ish range exploration
+    # tends to yield smaller sums before larger ones
+    for x in range(0, range_max + 1):
+        for i in range(x):
+            yield (i,x)
+        for j in range(x + 1):
+            yield (x, j)
+
+
+
+def match_sig():
+    template = make_commit_template()
+    start_atime = get_commit_atime()
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+        for delta_a, delta_c in pairwise_explore_range(86400 // 2):
+            atime = start_atime - delta_a
+            ctime = atime + delta_c
+            executor.submit(check_sig, template, atime, ctime, "007")
 
 
 # def match_sig():
@@ -153,9 +164,10 @@ def check_sig(atime, ctime):
 #
 #     return list(visited)
 if __name__ == "__main__":
-    o = run_command(["git", "cat-file", "commit", "HEAD^"])
-    ohash = get_commit_hash(o)
+    match_sig()
+    # o = run_command(["git", "cat-file", "commit", "HEAD^"])
+    # ohash = get_commit_hash(o)
 
-    t = make_commit_template()
-    signed_obj = sign_commit_object(t, atime=1720651680, ctime=1720651736)
-    print(signed_obj == o)
+    # t = make_commit_template()
+    # signed_obj = sign_commit_object(t, atime=1720651680, ctime=1720651736)
+    # print(signed_obj == o)
