@@ -25,6 +25,7 @@ export SRC_HOME=${HOME}/src
 export XDISPLAY="$DISPLAY"
 unset DISPLAY
 export AWS_SDK_LOAD_CONFIG=1
+export AWS_EC2_METADATA_DISABLED=true
 export BASH_SILENCE_DEPRECATION_WARNING=1 # yes apple, I want to use bash
 
 # go config
