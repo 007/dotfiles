@@ -12,10 +12,15 @@ function commit_and_check {
 ATIME=$(git log -n1 --format=%at)
 CTIME=$(git log -n1 --format=%ct)
 
-for c in $(seq 0 43200); do
-  for a in $(seq 0 43200); do
-    commit_and_check $((ATIME - a)) $((CTIME + c))
-    [[ $a -gt $c ]] && commit_and_check $((ATIME - a)) $((CTIME - c))
+commit_and_check ${ATIME} ${CTIME}
+
+for x in $(seq 3600); do
+  for i in $(seq 0 $((x - 1))); do
+    commit_and_check $((ATIME - i)) $((CTIME + x))
+  done
+  for i in $(seq 0 ${x}); do
+    commit_and_check $((ATIME - x)) $((CTIME - i))
+    commit_and_check $((ATIME - x)) $((CTIME + i))
   done
 done
 
