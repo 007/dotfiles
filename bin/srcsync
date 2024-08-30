@@ -1,7 +1,56 @@
 #!/bin/bash
 
+# update all repos in `pwd`
+function update_all_repos() {
+  local background=false
+
+  if [[ $# -gt 0 ]]; then
+    background=true
+  fi
+
+  if [[ $background == "false" ]]; then
+    local sync_sem_id="srcsync.update"
+  else
+    local sync_sem_id="srcsync.background"
+  fi
+
+  for x in *; do
+    [[ -d "${x}/.git/" ]] || continue
+
+    if [[ $background == "false" ]]; then
+      echo "${x}"
+    fi
+    # if [[ ${cleanup} -gt 0 ]]; then
+    #   # subshell for `cd`
+    #   (
+    #     cd "$x"
+    #     git diff --exit-code HEAD > /dev/null && \
+    #     (git checkout main || git checkout master) && \
+    #     git branch -vv | awk '$4 == "gone]" {print $1}' | grep -Ev '^(main|master)$' | xargs --no-run-if-empty -n1 git branch -vvD && \
+    #     git reflog expire --expire=90.days.ago --expire-unreachable=1.days.ago && \
+    #     git gc
+    #   )
+    # fi
+    sem -j -2 --id ${sync_sem_id} echo $x ';' \
+      cd "$x" ';' \
+      git diff --exit-code HEAD '>' /dev/null '&&' \
+      '(' git fetch --prune --tags --prune-tags origin '||' true ')' '&&' \
+      git merge FETCH_HEAD '&&' \
+      '(' [[ -f .gitmodules ]] '&&' git submodule update --init '1>&2' \
+      '&&' for d in '$('git submodule status '|' awk "'"'{print $2}'"'" ');' do \
+      '(' cd '$d' '&&' git restore-mtime -q ')' ';' \
+      done '||' true ')' '&&' \
+      git restore-mtime -q 1>&2
+  done
+  if [[ $background == "false" ]]; then
+    echo "Waiting for all repos to finish updating"
+    sem --id ${sync_sem_id} --st -300 --wait
+  fi
+}
+
 # Set this if you want to use something other than `${HOME}/src` as your work-checkout-root
-LAMBDA_SRC_DIR=${LAMBDA_SRC_DIR:-~/src}
+LAMBDA_SRC_DIR="${LAMBDA_SRC_DIR:-${HOME}/src}"
+LAMBDA_PRISTINE_DIR="${LAMBDA_PRISTINE_DIR:-${LAMBDA_SRC_DIR}/pristine}"
 
 # check if we have some necessary tools installed
 type -P "gh"  > /dev/null || { echo "Need GitHub CLI installed and active, \`brew install gh;gh auth login\`"; exit 1; }
@@ -10,15 +59,23 @@ type -P "git-restore-mtime" > /dev/null || { echo "Need git-restore-mtime instal
 type -P "jq"  > /dev/null || { echo "Need jq installed, \`brew install jq\`"; exit 1; }
 type -P "sem" > /dev/null || { echo "Need GNU parallel (sem) installed, \`brew install parallel;parallel --citation\`"; exit 1; }
 
-# CLI parsing, we just have the one: `-v` or `-vv`
+# CLI parsing, -v, -vv, -c
 verbose=0
-while getopts qv flag; do
+cleanup=0
+while getopts qvc flag; do
   case "${flag}" in
+    c)
+      cleanup=1
+      ;;
     v)
       verbose=$((verbose + 1))
       ;;
   esac
 done
+
+if [[ $cleanup -gt 0 && $verbose -eq 0 ]]; then
+  verbose=1
+fi
 
 # see if we want to generally suppress stderr
 if [[ $verbose -eq 0 ]] ; then
@@ -38,44 +95,23 @@ type -P "tmutil" > /dev/null && tmutil snapshot
 
 # Make sure we have all available repos in our `pristine` dir
 echo "Checking for missing repos"
-cd ${LAMBDA_SRC_DIR}/pristine
+cd "${LAMBDA_PRISTINE_DIR}"
 for x in $(gh repo list lambdal --source --no-archived --limit 999 --json name --jq '.[]|.name'); do
   [[ -d "${x}/.git/" ]] || (echo -n "$x " && git clone git@github.com:lambdal/${x}.git 1>&2 && echo -e '\xe2\x9c\x85')
 done
 sem --id srcsync.clone --st -300 --wait
 
-# update all repos in `src` and `src/pristine`
+# update all repos in `src` and `pristine`
 echo "Updating all repos"
-cd ${LAMBDA_SRC_DIR}
-for x in * pristine/*; do
-  [[ -d "${x}/.git/" ]] || continue
+cd "${LAMBDA_SRC_DIR}"
+update_all_repos
 
-  sem -j -2 --id srcsync.update echo $x ';' \
-    cd "$x" ';' \
-    git diff --exit-code HEAD '>' /dev/null '&&' \
-    git fetch --prune --tags --prune-tags origin '&&' \
-    git pull '&&' \
-    git restore-mtime -q 1>&2
-done
-sem --id srcsync.update --st -300 --wait
 
-# update submodules as well
-echo "Updating submodules"
-cd ${LAMBDA_SRC_DIR}
-for x in */.gitmodules pristine/*/.gitmodules; do
-  cd ${LAMBDA_SRC_DIR}
-  wdir="${x%/.gitmodules}"
-  cd $wdir
-  git submodule update --init 1>&2
-  git diff --exit-code HEAD > /dev/null || continue
-  echo "${wdir}"
-  for d in $(git submodule status | awk '{print $2}'); do
-    echo -e "\t-> ${d}"
-    (cd "$d" && git restore-mtime -q) 1>&2
-  done
-done
+echo "Background updating pristine repos"
+cd "${LAMBDA_PRISTINE_DIR}"
+update_all_repos background &
 
-if [[ $verbose -eq 0 ]] ; then
-  # restore stderr, probably not necessary since we're exiting
-  exec 2>&3
-fi
+# if [[ $verbose -eq 0 ]] ; then
+#   # restore stderr, probably not necessary since we're exiting
+#   exec 2>&3
+# fi

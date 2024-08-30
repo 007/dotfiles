@@ -29,10 +29,11 @@ cd "${GIT_SRC_DIR}"
 echo "${BWH}Repo${RST} ${BWH}Branch${RST} ${BWH}State${RST} ${BWH}Upstream${RST}"
 for x in *; do
   [[ -d "${x}/.git/" ]] || continue
+  (>&2 echo -n ".")
   (
     cd "${x}"
-    BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    STATE=$(git diff --exit-code HEAD > /dev/null && echo "${GRN}clean${RST}" || echo "${RED}dirty${RST}")
+    BRANCH=$(git rev-parse --abbrev-ref HEAD > /dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo "detached")
+    STATE=$(git rev-parse --abbrev-ref HEAD > /dev/null 2>&1 && git diff --exit-code HEAD > /dev/null && echo "${GRN}clean${RST}" || echo "${RED}dirty${RST}")
 
     UPSTREAM=$(git branch -vv | grep '^\*' | cut -d\[ -f2 | cut -d\] -f1 | cut -d\  -f2- | sed 's/ /_/g')
     if [[ $UPSTREAM == "origin/main" ]] ; then
@@ -55,4 +56,5 @@ for x in *; do
   )
 
 done
+(>&2 echo "")
 ) | column -t
