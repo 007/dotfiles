@@ -26,13 +26,14 @@ cd "${GIT_SRC_DIR}"
 # subshell so we can pipe the whole thing to `column`
 # TODO: rewrite this in a real language
 (
-echo "${BWH}Repo${RST} ${BWH}Branch${RST} ${BWH}State${RST} ${BWH}Upstream${RST}"
+echo "${BWH}Repo${RST} ${BWH}#${RST} ${BWH}Branch${RST} ${BWH}State${RST} ${BWH}Upstream${RST}"
 for x in *; do
   [[ -d "${x}/.git/" ]] || continue
   (>&2 echo -n ".")
   (
     cd "${x}"
     BRANCH=$(git rev-parse --abbrev-ref HEAD > /dev/null 2>&1 && git rev-parse --abbrev-ref HEAD || echo "detached")
+    BRANCHES=${GRY}$(git rev-parse --abbrev-ref HEAD > /dev/null 2>&1 && echo $(git branch -vv | wc -l) || echo "?")${RST}
     STATE=$(git rev-parse --abbrev-ref HEAD > /dev/null 2>&1 && git diff --exit-code HEAD > /dev/null && echo "${GRN}clean${RST}" || echo "${RED}dirty${RST}")
 
     UPSTREAM=$(git branch -vv | grep '^\*' | cut -d\[ -f2 | cut -d\] -f1 | cut -d\  -f2- | sed 's/ /_/g')
@@ -52,7 +53,7 @@ for x in *; do
       BRANCH="${CYN}${BRANCH}${RST}"
     fi
 
-    echo "${WHT}${x}${RST} ${BRANCH} ${STATE} ${UPSTREAM}"
+    echo "${WHT}${x}${RST} ${BRANCHES} ${BRANCH} ${STATE} ${UPSTREAM}"
   )
 
 done
