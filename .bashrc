@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # source our shared functions
-[ -e .posix_functions ] && source .posix_functions
+[ -e "${HOME}/.posix_functions" ] && source "${HOME}/.posix_functions"
 
 # source aliases
-[ -e .bash_alises ] && source .bash_aliases
+[ -e "${HOME}/.bash_aliases" ] && source "${HOME}/.bash_aliases"
 
 function checkruneval { # eval command if it exists {{{
   type -P "${1}" > /dev/null && eval "$(eval "$@")"
@@ -31,6 +31,17 @@ export BASH_SILENCE_DEPRECATION_WARNING=1 # yes apple, I want to use bash
 # go config
 export GOCACHE="${HOME}/.cache/go"
 export GOMODCACHE="${HOME}/.cache/go/pkg/mod"
+
+# sync config
+export SYNC_SRC_DIR="${HOME}/src/working"
+export SYNC_PRISTINE_DIR="${HOME}/src/pristine"
+
+# claude code otel config
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=prometheus
+export OTEL_EXPORTER_PROMETHEUS_PORT=9464
+export OTEL_EXPORTER_PROMETHEUS_HOST=0.0.0.0  # to bind to all interfaces (default is localhost)
+export OTEL_METRIC_EXPORT_INTERVAL=5000
 
 # end exports }}}
 
@@ -125,3 +136,9 @@ export HOMEBREW_REPOSITORY="/opt/homebrew";
 export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:";
 export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
 [[ -r "$HOMEBREW_PREFIX/etc/profile.d/bash_completion.sh" ]] && . "$HOMEBREW_PREFIX/etc/profile.d/bash_completion.sh"
+
+# https://github.com/direnv/direnv
+eval "$(direnv hook bash)"
+
+# https://github.com/common-fate/granted
+alias assume=". assume"

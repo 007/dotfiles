@@ -66,7 +66,7 @@
 	header = white bold
 	untracked = yellow
 [alias]
-  prme = "!echo \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/compare/$(git rev-parse --abbrev-ref HEAD)?expand=1\""
+  prme = "!echo \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull/new/$(git rev-parse --abbrev-ref HEAD)\""
   getpull = "!echo \"https://$(git config --get remote.origin.url | perl -pe 's,^.*?([^/@]+\\.(?:org|com)).([^/]+)/(.*).git$,$1/$2/$3,g')/pull-requests/$(git log --merges --ancestry-path --oneline --reverse ${1}..HEAD | grep 'pull request' | head -n1 | perl -pe 's/^.+\\(pull request #(\\d+)\\)$/\\1/g')\" #"
   parent-branch= "!git show-branch -a 2>/dev/null | grep -A1 $(git rev-parse --abbrev-ref HEAD) | tail -n1 | perl -pe 's/.*\\[(.*)[\\]^~].*/$1/'"
   #last = "!git log --oneline --max-count=1"
@@ -134,3 +134,5 @@
 	format = ssh
 [gpg "ssh"]
 	allowedSignersFile = ~/.config/git/allowed_signers
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/

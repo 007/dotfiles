@@ -8,10 +8,10 @@ function update_all_repos() {
     background=true
   fi
 
-  if [[ $background == "false" ]]; then
-    local sync_sem_id="srcsync.update"
-  else
+  if [[ $background == "true" ]]; then
     local sync_sem_id="srcsync.background"
+  else
+    local sync_sem_id="srcsync.update"
   fi
 
   for x in *; do
@@ -27,8 +27,7 @@ function update_all_repos() {
     #     git diff --exit-code HEAD > /dev/null && \
     #     (git checkout main || git checkout master) && \
     #     git branch -vv | awk '$4 == "gone]" {print $1}' | grep -Ev '^(main|master)$' | xargs --no-run-if-empty -n1 git branch -vvD && \
-    #     git reflog expire --expire=90.days.ago --expire-unreachable=1.days.ago && \
-    #     git gc
+    #     git -c gc.reflogExpireUnreachable=0 -c gc.pruneExpire=now gc
     #   )
     # fi
     sem -j -2 --id ${sync_sem_id} echo $x ';' \
@@ -43,14 +42,14 @@ function update_all_repos() {
       git restore-mtime -q 1>&2
   done
   if [[ $background == "false" ]]; then
-    echo "Waiting for all repos to finish updating"
+    echo "Waiting for working repos to finish updating"
     sem --id ${sync_sem_id} --st -300 --wait
   fi
 }
 
 # Set this if you want to use something other than `${HOME}/src` as your work-checkout-root
-LAMBDA_SRC_DIR="${LAMBDA_SRC_DIR:-${HOME}/src}"
-LAMBDA_PRISTINE_DIR="${LAMBDA_PRISTINE_DIR:-${LAMBDA_SRC_DIR}/pristine}"
+SYNC_SRC_DIR="${SYNC_SRC_DIR:-${HOME}/src}"
+SYNC_PRISTINE_DIR="${SYNC_PRISTINE_DIR:-${SYNC_SRC_DIR}/pristine}"
 
 # check if we have some necessary tools installed
 type -P "gh"  > /dev/null || { echo "Need GitHub CLI installed and active, \`brew install gh;gh auth login\`"; exit 1; }
@@ -59,16 +58,20 @@ type -P "git-restore-mtime" > /dev/null || { echo "Need git-restore-mtime instal
 type -P "jq"  > /dev/null || { echo "Need jq installed, \`brew install jq\`"; exit 1; }
 type -P "sem" > /dev/null || { echo "Need GNU parallel (sem) installed, \`brew install parallel;parallel --citation\`"; exit 1; }
 
-# CLI parsing, -v, -vv, -c
+# CLI parsing, -v, -vv, -c, -w
 verbose=0
 cleanup=0
-while getopts qvc flag; do
+shouldwait=0
+while getopts qvcw flag; do
   case "${flag}" in
     c)
       cleanup=1
       ;;
     v)
       verbose=$((verbose + 1))
+      ;;
+    w)
+      shouldwait=1
       ;;
   esac
 done
@@ -95,7 +98,7 @@ type -P "tmutil" > /dev/null && tmutil snapshot
 
 # Make sure we have all available repos in our `pristine` dir
 echo "Checking for missing repos"
-cd "${LAMBDA_PRISTINE_DIR}"
+cd "${SYNC_PRISTINE_DIR}"
 for x in $(gh repo list lambdal --source --no-archived --limit 999 --json name --jq '.[]|.name'); do
   [[ -d "${x}/.git/" ]] || (echo -n "$x " && git clone git@github.com:lambdal/${x}.git 1>&2 && echo -e '\xe2\x9c\x85')
 done
@@ -103,13 +106,33 @@ sem --id srcsync.clone --st -300 --wait
 
 # update all repos in `src` and `pristine`
 echo "Updating all repos"
-cd "${LAMBDA_SRC_DIR}"
+cd "${SYNC_SRC_DIR}"
 update_all_repos
 
+# # update submodules as well
+# echo "Updating submodules"
+# cd ${SYNC_SRC_DIR}
+# for x in */.gitmodules pristine/*/.gitmodules; do
+#   cd ${SYNC_SRC_DIR}
+#   wdir="${x%/.gitmodules}"
+#   cd $wdir
+#   git submodule update --init 1>&2
+#   git diff --exit-code HEAD > /dev/null || continue
+#   echo "${wdir}"
+#   for d in $(git submodule status | awk '{print $2}'); do
+#     echo -e "\t-> ${d}"
+#     (cd "$d" && git restore-mtime -q) 1>&2
+#   done
+# done
 
-echo "Background updating pristine repos"
-cd "${LAMBDA_PRISTINE_DIR}"
-update_all_repos background &
+cd "${SYNC_PRISTINE_DIR}"
+if [[ $shouldwait -eq 1 ]]; then
+  echo "Updating pristine repos"
+  update_all_repos
+else
+  echo "Background updating pristine repos"
+  update_all_repos background &
+fi
 
 # if [[ $verbose -eq 0 ]] ; then
 #   # restore stderr, probably not necessary since we're exiting

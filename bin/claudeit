@@ -1,0 +1,18 @@
+#!/bin/bash
+set -x
+
+screen -dmS prometheus podman run -it --rm --name prometheus -p 9090:9090 -p 9091:9091 -v ${HOME}/working/localprom:/prometheus -v ${HOME}/working/localprom/etc:/etc/prometheus prom/prometheus:latest --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries --web.console.templates=/etc/prometheus/consoles --web.enable-lifecycle --web.enable-admin-api
+sleep 5
+
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=prometheus
+export OTEL_EXPORTER_PROMETHEUS_PORT=9464
+export OTEL_EXPORTER_PROMETHEUS_HOST=0.0.0.0
+export OTEL_METRIC_EXPORT_INTERVAL=5000
+
+claude "$@"
+
+#podman stop otel-collector
+# podman stop prometheus
+
+#podman ps -aq | xargs -n1 podman stop

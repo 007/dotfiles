@@ -28,6 +28,7 @@ Movies
 Music
 Pictures
 Public
-src
+./src
 working
 .config/github-copilot
+__pycache__

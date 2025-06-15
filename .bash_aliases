@@ -13,6 +13,7 @@ alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
 alias gitgc='nice -n19 ionice -c 3 git repack -a -d -f --depth=1000 --window=500'
+alias bruteclean='git -c gc.reflogExpireUnreachable=0 -c gc.pruneExpire=now gc'
 alias gitdev='git log --oneline develop..HEAD'
 alias gitdevp='git log -p develop..HEAD'
 alias gitdevd='git diff develop..HEAD'
@@ -24,15 +25,19 @@ alias startipy='screen -S jupyter -Q select . || screen -dmS jupyter jupyter not
 alias nukedocker='ps -a -q | xargs --no-run-if-empty docker rm;docker image list -q | grep -v 7c09e61e9035 | xargs --no-run-if-empty docker rmi'
 alias jenkinsbackup='rsync -a --rsync-path="sudo rsync" --info=progress2 jenkins-master:/var/lib/jenkins/ ~/working/jenkins/'
 alias updateqa='ssh -t qabox ./update-qa.sh'
-alias brewup='brew update;brew upgrade;brew cask outdated | cut -d\  -f1 | xargs brew cask reinstall'
+alias brewup='brew unlink moreutils;brew unlink parallel;brew update;brew upgrade;brew unlink moreutils;brew unlink parallel;brew link moreutils;brew link --overwrite parallel'
 alias ecrlogin='eval "$(aws ecr get-login --no-include-email)"'
 alias awslogin='bazel run //cloud/terraform:aws_auth -- login'
 alias k8slogin='bazel run //cloud/terraform:aws_auth -- k8s'
 alias ubuntu='docker run --rm -it --mount type=bind,source=${HOME}/working,target=/working ubuntu:focal'
 alias spacelift-container='docker run --rm -it public.ecr.aws/spacelift/runner-terraform:latest'
 alias youtube-dl='youtube-dl --format '\''22/bestvideo[height<=?720][ext=mp4]+bestaudio[ext=m4a]'\'''
-alias tfgo='terraform init && terraform get && terraform plan -out plan.out'
+alias tfgo='terraform init && terraform get && terraform apply'
 alias tflock='terraform init -upgrade -lock=false -backend=false && terraform providers lock -platform=linux_amd64 && terraform providers lock -platform=linux_arm64 && terraform providers lock -platform=darwin_arm64'
+#alias tflint='tflint --deep --enable-rule=terraform_deprecated_interpolation --enable-rule=terraform_documented_outputs --enable-rule=terraform_documented_variables --enable-rule=terraform_required_version --enable-rule=terraform_sensitive_output --enable-rule=terraform_sensitive_variable --enable-rule=terraform_spelling --enable-rule=terraform_unused_declarations --enable-rule=terraform_unused_variables'
+
+alias ourtflint="tflint --format compact --minimum-failure-severity=notice --only=terraform_required_version --only=terraform_documented_outputs --only=terraform_documented_variables --only=terraform_naming_convention --only=terraform_comment_syntax --only=terraform_unused_declarations"
+
 alias ident='figlet -w $COLUMNS -r $USER | lolcat -p 0.3'
 alias fedrate='curl -s https://fred.stlouisfed.org/data/MORTGAGE15US.txt | tail -1 | awk '\''{print "Fed rate for " $1 " is " $2}'\'''
 alias googsync='LOG_LEVEL=debug time bazel run //cloud/terraform:sso_admin -- sync-google --test-org --save-temp'
@@ -59,3 +64,4 @@ alias molly='bazel run //tools/monorepo/molly:molly'
 alias repro='bazel test --config=python_next --config=intel-cuda --cache_test_results=no --build_tests_only //experimental/rmoore/pynext:torch_repro_generated_tests'
 
 alias docker='podman'
+alias deepseek='ollama run deepseek-r1:32b'
