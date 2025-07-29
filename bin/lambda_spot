@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S python3 -u
 import argparse
-import base64
 import json
 import os
 import time
@@ -10,15 +9,16 @@ import urllib.request
 if "LAMBDA_API_KEY" not in os.environ:
     raise EnvironmentError("Add $LAMBDA_API_KEY to your environment variables")
 
-AUTH = (os.environ["LAMBDA_API_KEY"], "")
+API_KEY = os.environ["LAMBDA_API_KEY"]
 
 
-def lambda_request(method, url, json_data=None, auth=AUTH, headers=None):
+def lambda_request(method, url, json_data=None, api_key=API_KEY, headers=None):
     # Build request
     req = urllib.request.Request(url, method=method)
 
     # Set default headers
     req.add_header("Accept", "application/json")
+    req.add_header("User-Agent", "lambda-spot/0.1a")
 
     # Handle JSON payload
     data = None
@@ -26,10 +26,9 @@ def lambda_request(method, url, json_data=None, auth=AUTH, headers=None):
         data = json.dumps(json_data).encode("utf-8")
         req.add_header("Content-Type", "application/json")
 
-    # Handle basic auth
-    if auth:
-        credentials = base64.b64encode(f"{auth[0]}:{auth[1]}".encode()).decode()
-        req.add_header("Authorization", f"Basic {credentials}")
+    # Handle bearer auth
+    if api_key:
+        req.add_header("Authorization", f"Bearer {api_key}")
 
     # Add any additional headers
     if headers:
@@ -84,7 +83,7 @@ def launch(args):
         "region_name": args.region,
         "instance_type_name": args.instance_type,
         "image": {"family": "lambda-stack-24-04"},
-        "ssh_key_names": [args.ssh_key],
+        "ssh_key_names": list(SSH_KEYS.keys()),
         "spot_market_options": {
             "request_type": args.spot_type,
             "expiration_dt": None,
@@ -188,16 +187,6 @@ def cancel(args):
 
 
 def main():
-    ssh_key_default = None
-    ssh_config_dir = os.path.expanduser("~/.ssh")
-    for file in os.listdir(ssh_config_dir):
-        if file.endswith(".pub"):
-            with open(f"{ssh_config_dir}/{file}") as f:
-                contents = f.read().strip()
-            for k in SSH_KEYS.values():
-                if contents in k["public_key"]:
-                    ssh_key_default = k["name"]
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -224,13 +213,6 @@ def main():
         choices=sorted(INSTANCE_TYPES.keys()),
         required=True,
         help="The instance type of the spot instance.",
-    )
-    launch_parser.add_argument(
-        "--ssh-key",
-        choices=sorted(SSH_KEYS.keys()),
-        required=ssh_key_default is None,
-        default=ssh_key_default,
-        help="SSH key for accessing the instance. If your ssh key is already added to the account this is not required.",
     )
     launch_parser.add_argument(
         "--file-system",
