@@ -1,11 +1,22 @@
 #!/bin/bash
 
-# update all repos in `pwd`
+# update all repos in specified directories (or current directory if none specified)
 function update_all_repos() {
   local background=false
+  local dirs=()
 
-  if [[ $# -gt 0 ]]; then
+  # First argument is background mode if present
+  if [[ $# -gt 0 && "$1" == "background" ]]; then
     background=true
+    shift
+  fi
+
+  # Remaining arguments are directories
+  dirs=("$@")
+
+  # If no directories specified, use current directory
+  if [[ ${#dirs[@]} -eq 0 ]]; then
+    dirs=("$(pwd)")
   fi
 
   if [[ $background == "true" ]]; then
@@ -14,35 +25,46 @@ function update_all_repos() {
     local sync_sem_id="srcsync.update"
   fi
 
-  for x in *; do
-    [[ -d "${x}/.git/" ]] || continue
-
-    if [[ $background == "false" ]]; then
-      echo "${x}"
+  # Process all directories in the same queue
+  for dir in "${dirs[@]}"; do
+    if [[ ! -d "$dir" ]]; then
+      continue
     fi
-    # if [[ ${cleanup} -gt 0 ]]; then
-    #   # subshell for `cd`
-    #   (
-    #     cd "$x"
-    #     git diff --exit-code HEAD > /dev/null && \
-    #     (git checkout main || git checkout master) && \
-    #     git branch -vv | awk '$4 == "gone]" {print $1}' | grep -Ev '^(main|master)$' | xargs --no-run-if-empty -n1 git branch -vvD && \
-    #     git -c gc.reflogExpireUnreachable=0 -c gc.pruneExpire=now gc
-    #   )
-    # fi
-    sem -j -2 --id ${sync_sem_id} echo $x ';' \
-      cd "$x" ';' \
-      git diff --exit-code HEAD '>' /dev/null '&&' \
-      '(' git fetch --prune --tags --prune-tags origin '||' true ')' '&&' \
-      git merge FETCH_HEAD '&&' \
-      '(' [[ -f .gitmodules ]] '&&' git submodule update --init '1>&2' \
-      '&&' for d in '$('git submodule status '|' awk "'"'{print $2}'"'" ');' do \
-      '(' cd '$d' '&&' git restore-mtime -q ')' ';' \
-      done '||' true ')' '&&' \
-      git restore-mtime -q 1>&2
+
+    for x in "$dir"/*; do
+      [[ -d "${x}/.git/" ]] || continue
+
+      local repo_name=$(basename "$x")
+      local repo_path="$x"
+
+      if [[ $background == "false" ]]; then
+        echo "${repo_path}"
+      fi
+      # if [[ ${cleanup} -gt 0 ]]; then
+      #   # subshell for `cd`
+      #   (
+      #     cd "$repo_path"
+      #     git diff --exit-code HEAD > /dev/null && \
+      #     (git checkout main || git checkout master) && \
+      #     git branch -vv | awk '$4 == "gone]" {print $1}' | grep -Ev '^(main|master)$' | xargs --no-run-if-empty -n1 git branch -vvD && \
+      #     git -c gc.reflogExpireUnreachable=0 -c gc.pruneExpire=now gc
+      #   )
+      # fi
+      sem -j -2 --id ${sync_sem_id} echo "$repo_path" ';' \
+        cd "$repo_path" ';' \
+        git diff --exit-code HEAD '>' /dev/null '&&' \
+        '(' git fetch --prune --tags --prune-tags origin '||' true ')' '&&' \
+        git merge FETCH_HEAD '&&' \
+        '(' [[ -f .gitmodules ]] '&&' git submodule update --init '1>&2' \
+        '&&' for d in '$('git submodule status '|' awk "'"'{print $2}'"'" ');' do \
+        '(' cd '$d' '&&' git restore-mtime -q ')' ';' \
+        done '||' true ')' '&&' \
+        git restore-mtime -q 1>&2
+    done
   done
+
   if [[ $background == "false" ]]; then
-    echo "Waiting for working repos to finish updating"
+    echo "Waiting for repos to finish updating"
     sem --id ${sync_sem_id} --st -300 --wait
   fi
 }
@@ -50,6 +72,9 @@ function update_all_repos() {
 # Set this if you want to use something other than `${HOME}/src` as your work-checkout-root
 SYNC_SRC_DIR="${SYNC_SRC_DIR:-${HOME}/src}"
 SYNC_PRISTINE_DIR="${SYNC_PRISTINE_DIR:-${SYNC_SRC_DIR}/pristine}"
+
+# Remove trailing slash from SYNC_PRISTINE_DIR if present
+SYNC_PRISTINE_DIR="${SYNC_PRISTINE_DIR%/}"
 
 # check if we have some necessary tools installed
 type -P "gh"  > /dev/null || { echo "Need GitHub CLI installed and active, \`brew install gh;gh auth login\`"; exit 1; }
@@ -100,14 +125,27 @@ type -P "tmutil" > /dev/null && tmutil snapshot
 echo "Checking for missing repos"
 cd "${SYNC_PRISTINE_DIR}"
 for x in $(gh repo list lambdal --source --no-archived --limit 999 --json name --jq '.[]|.name'); do
-  [[ -d "${x}/.git/" ]] || (echo -n "$x " && git clone git@github.com:lambdal/${x}.git 1>&2 && echo -e '\xe2\x9c\x85')
+  # Check if repo exists in any pristine* directory
+  repo_exists=false
+  for dir in "${SYNC_PRISTINE_DIR}"*/"${x}/.git"; do
+    if [[ -d "$dir" ]]; then
+      repo_exists=true
+      break
+    fi
+  done
+
+  if [[ "$repo_exists" == "true" ]]; then
+    continue
+  fi
+
+  # Clone to main pristine dir by default
+  echo -n "$x " && git clone git@github.com:lambdal/${x}.git 1>&2 && echo -e '\xe2\x9c\x85'
 done
 sem --id srcsync.clone --st -300 --wait
 
 # update all repos in `src` and `pristine`
 echo "Updating all repos"
-cd "${SYNC_SRC_DIR}"
-update_all_repos
+update_all_repos "${SYNC_SRC_DIR}"
 
 # # update submodules as well
 # echo "Updating submodules"
@@ -125,13 +163,23 @@ update_all_repos
 #   done
 # done
 
-cd "${SYNC_PRISTINE_DIR}"
-if [[ $shouldwait -eq 1 ]]; then
-  echo "Updating pristine repos"
-  update_all_repos
-else
-  echo "Background updating pristine repos"
-  update_all_repos background &
+# Collect all pristine* directories that exist
+pristine_dirs=()
+for dir in "${SYNC_PRISTINE_DIR}"*/; do
+  if [[ -d "$dir" ]]; then
+    pristine_dirs+=("$dir")
+  fi
+done
+
+# Update all pristine repos in a single queue
+if [[ ${#pristine_dirs[@]} -gt 0 ]]; then
+  if [[ $shouldwait -eq 1 ]]; then
+    echo "Updating pristine repos"
+    update_all_repos "${pristine_dirs[@]}"
+  else
+    echo "Background updating pristine repos"
+    update_all_repos background "${pristine_dirs[@]}" &
+  fi
 fi
 
 # if [[ $verbose -eq 0 ]] ; then
