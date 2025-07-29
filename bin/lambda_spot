@@ -1,0 +1,271 @@
+#!/usr/bin/env python3
+import argparse
+import base64
+import json
+import os
+import time
+import urllib.error
+import urllib.request
+
+if "LAMBDA_API_KEY" not in os.environ:
+    raise EnvironmentError("Add $LAMBDA_API_KEY to your environment variables")
+
+AUTH = (os.environ["LAMBDA_API_KEY"], "")
+
+
+def lambda_request(method, url, json_data=None, auth=AUTH, headers=None):
+    # Build request
+    req = urllib.request.Request(url, method=method)
+
+    # Set default headers
+    req.add_header("Accept", "application/json")
+
+    # Handle JSON payload
+    data = None
+    if json_data is not None:
+        data = json.dumps(json_data).encode("utf-8")
+        req.add_header("Content-Type", "application/json")
+
+    # Handle basic auth
+    if auth:
+        credentials = base64.b64encode(f"{auth[0]}:{auth[1]}".encode()).decode()
+        req.add_header("Authorization", f"Basic {credentials}")
+
+    # Add any additional headers
+    if headers:
+        for key, value in headers.items():
+            req.add_header(key, value)
+
+    # Make request and handle response
+    try:
+        with urllib.request.urlopen(req, data=data) as response:
+            response_data = response.read().decode("utf-8")
+            return json.loads(response_data)["data"]
+    except urllib.error.HTTPError as e:
+        # Re-raise to maintain existing error handling behavior
+        raise
+
+
+REGIONS = {
+    "asia-northeast-1": "Osaka, Japan",
+    "asia-northeast-2": "Tokyo, Japan",
+    "asia-south-1": "India",
+    "australia-east-1": "Sydney, Australia",
+    "europe-central-1": "Germany",
+    "me-west-1": "Israel",
+    "us-east-1": "Virginia, USA",
+    "us-east-2": "Washington DC, USA",
+    "us-east-3": "Washington DC, USA",
+    "us-midwest-1": "Illinois, USA",
+    "us-midwest-2": "Ohio, USA",
+    "us-south-1": "Texas, USA",
+    "us-south-2": "North Texas, USA",
+    "us-south-3": "Central Texas, USA",
+    "us-west-1": "California, USA",
+    "us-west-2": "Arizona, USA",
+    "us-west-3": "Utah, USA",
+}
+
+INSTANCE_TYPES = lambda_request("GET", "https://cloud.lambda.ai/api/v1/instance-types")
+
+SSH_KEYS = {
+    k["name"]: k
+    for k in lambda_request("GET", "https://cloud.lambda.ai/api/v1/ssh-keys")
+}
+
+FILE_SYSTEMS = {
+    f["name"]: f
+    for f in lambda_request("GET", "https://cloud.lambda.ai/api/v1/file-systems")
+}
+
+
+def launch(args):
+    data = {
+        "region_name": args.region,
+        "instance_type_name": args.instance_type,
+        "image": {"family": "lambda-stack-24-04"},
+        "ssh_key_names": [args.ssh_key],
+        "spot_market_options": {
+            "request_type": args.spot_type,
+            "expiration_dt": None,
+        },
+    }
+
+    if args.name is not None:
+        data["name"] = args.name
+
+    if args.file_system is not None:
+        assert FILE_SYSTEMS[args.file_system]["region"]["name"] == args.region
+        data["file_system_names"] = [args.file_system]
+        data["file_system_mounts"] = [
+            {
+                "mount_point": FILE_SYSTEMS[args.file_system]["mount_point"],
+                "file_system_id": FILE_SYSTEMS[args.file_system]["id"],
+            }
+        ]
+
+    spot_request = lambda_request(
+        "POST",
+        "https://cloud.lambda.ai/api/v1/instance-operations/launch",
+        json_data=data,
+    )
+    print(spot_request)
+
+
+def ls(args):
+    spots = lambda_request("GET", "https://cloud.lambda.ai/api/v1/spot-requests")
+    spots = sorted(
+        spots, key=lambda s: (s["instance_type"]["name"], s["region"]["name"])
+    )
+
+    print(
+        f"| {'spot request id':>32} | {'instance type':>20} | {'region':>20} | {'status':>10} | {'ssh':>32} |"
+    )
+    print(f"| {'-' * 32} | {'-' * 20} | {'-' * 20} | {'-' * 10} | {'-' * 32} |")
+    if len(spots) == 0:
+        print("None")
+    for r in spots:
+        id = r["id"]
+        instance_type = r["instance_type"]["name"]
+        region = r["region"]["name"]
+        status = "queued"
+        ssh_command = "-"
+        for instance_id in r["instance_ids"]:
+            instance = lambda_request(
+                "GET", f"https://cloud.lambda.ai/api/v1/instances/{instance_id}"
+            )
+            if instance["status"] not in ["booting", "active"]:
+                continue
+
+            ssh_command = f"ssh ubuntu@{instance['ip']}"
+            status = instance["status"]
+            break
+
+        status_icon = ""
+        if status == "booting":
+            status_icon = "🛠️"
+        elif status == "active":
+            status_icon = "✅"
+        elif status == "queued":
+            status_icon = "⏳"
+
+        print(
+            f"| {id} | {instance_type:>20} | {region:>20} | {status:>7} {status_icon} | {ssh_command:>32} |"
+        )
+    print()
+
+
+def wait(args):
+    print("Waiting for a spot instance...")
+    while True:
+        print("Checking requests...")
+        spots = lambda_request("GET", "https://cloud.lambda.ai/api/v1/spot-requests")
+
+        for r in spots:
+            print(f"Checking request {r['id']}...")
+            for instance_id in r["instance_ids"]:
+                instance = lambda_request(
+                    "GET", f"https://cloud.lambda.ai/api/v1/instances/{instance_id}"
+                )
+
+                while instance["status"] == "booting":
+                    print(f"Waiting for {instance['ip']} to boot...")
+                    time.sleep(30)
+                    instance = lambda_request(
+                        "GET", f"https://cloud.lambda.ai/api/v1/instances/{instance_id}"
+                    )
+
+                if instance["status"] == "active":
+                    print(f"ssh ubuntu@{instance['ip']}")
+                    return
+
+        time.sleep(60)
+
+
+def cancel(args):
+    lambda_request("DELETE", f"https://cloud.lambda.ai/api/v1/spot-requests/{args.id}")
+    print(f"Successfully deleted spot request {args.id}")
+
+
+def main():
+    ssh_key_default = None
+    ssh_config_dir = os.path.expanduser("~/.ssh")
+    for file in os.listdir(ssh_config_dir):
+        if file.endswith(".pub"):
+            with open(f"{ssh_config_dir}/{file}") as f:
+                contents = f.read().strip()
+            for k in SSH_KEYS.values():
+                if contents in k["public_key"]:
+                    ssh_key_default = k["name"]
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    subparsers = parser.add_subparsers()
+
+    launch_parser = subparsers.add_parser(
+        "launch",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        help="Launches a new spot instance",
+    )
+    launch_parser.add_argument(
+        "--name", default=None, help="The name of the spot instance"
+    )
+    launch_parser.add_argument(
+        "-r",
+        "--region",
+        choices=sorted(REGIONS.keys()),
+        required=True,
+        help="The region for the spot instance",
+    )
+    launch_parser.add_argument(
+        "-i",
+        "--instance-type",
+        choices=sorted(INSTANCE_TYPES.keys()),
+        required=True,
+        help="The instance type of the spot instance.",
+    )
+    launch_parser.add_argument(
+        "--ssh-key",
+        choices=sorted(SSH_KEYS.keys()),
+        required=ssh_key_default is None,
+        default=ssh_key_default,
+        help="SSH key for accessing the instance. If your ssh key is already added to the account this is not required.",
+    )
+    launch_parser.add_argument(
+        "--file-system",
+        default=None,
+        choices=sorted(FILE_SYSTEMS.keys()),
+        help="The name of the filesystem you want mounted on the spot instance",
+    )
+    launch_parser.add_argument(
+        "--spot-type",
+        choices=["persistent", "one_time"],
+        default="persistent",
+        help="Type of spot request.",
+    )
+    launch_parser.set_defaults(func=launch)
+
+    ls_parser = subparsers.add_parser(
+        "ls", help="Shows all active spot requests and any active instances"
+    )
+    ls_parser.set_defaults(func=ls)
+
+    wait_parser = subparsers.add_parser(
+        "wait",
+        help="Waits for any spot request to have an available instance and then prints an ssh command.",
+    )
+    wait_parser.set_defaults(func=wait)
+
+    cancel_parser = subparsers.add_parser(
+        "cancel", help="Cancel an individual spot request"
+    )
+    cancel_parser.add_argument("id", help="ID of the spot request to cancel")
+    cancel_parser.set_defaults(func=cancel)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
