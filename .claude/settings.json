@@ -36,8 +36,10 @@
       "Bash(jq:*)",
       "Bash(ls:*)",
       "Bash(ls)",
+      "Bash(lucky_commit)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
+      "Bash(npm outdated)",
       "Bash(npm run build:*)",
       "Bash(npm run lint)",
       "Bash(npm run typecheck:*)",
@@ -96,5 +98,18 @@
       "Bash(true)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/working/claude-hooks/bin/check_git_add"
+          }
+        ]
+      }
+    ]
   }
 }
