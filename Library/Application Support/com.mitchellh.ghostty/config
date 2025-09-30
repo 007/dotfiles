@@ -1,6 +1,6 @@
 font-family = Monaco
 font-size = 18
-font-synthetic-style = false
+#font-synthetic-style = false
 adjust-cell-height = -20%
 #bold-is-bright = true
 background-opacity = 1
@@ -8,41 +8,67 @@ background-blur = false
 cursor-style-blink = false
 copy-on-select = clipboard
 macos-secure-input-indication = true
-palette = 0=#14191e
-palette = 1=#b43c2a
-palette = 2=#00c200
-palette = 3=#c7c400
-palette = 4=#2744c7
-palette = 5=#c040be
-palette = 6=#00c5c7
-palette = 7=#c7c7c7
-palette = 8=#686868
-palette = 9=#dd7975
-palette = 10=#58e790
-palette = 11=#ece100
-palette = 12=#a7abf2
-palette = 13=#e17ee1
-palette = 14=#60fdff
-palette = 15=#ffffff
-background = #15191f
-foreground = #dcdcdc
-cursor-color = #ffffff
-selection-background = #b3d7ff
-selection-foreground = #000000
-#background = #000
-theme = Nocturnal Winter
-theme = Material Design Colors
-theme = Kibble
-theme = Kitty Default
-theme = Havn Skumring
-theme = Gruber Darker
-theme = Grape
-theme = Deep
-theme = Citruszest
-theme = Galizur
-theme = Chalk
-#background = #000
-theme = CGA
-theme = Apple System Colors
-theme = Adwaita Dark
-theme = Builtin Dark
+window-inherit-working-directory = false
+
+# cursor-color = #ffffff
+# selection-background = #b3d7ff
+# selection-background = #aaa
+# selection-foreground = #444
+#
+background = #000
+
+# black
+palette = 0=#222
+# red
+palette = 1=#c22
+# green
+palette = 2=#0c0
+# yellow (or brown/orange)
+palette = 3=#cc4
+# blue
+palette = 4=#66f
+# magenta
+palette = 5=#b4b
+# cyan
+palette = 6=#0cc
+# light gray
+palette = 7=#ccc
+
+# dark gray
+palette = 8=#666
+# light red
+palette = 9=#e44
+# light green
+palette = 10=#4f4
+# light yellow
+palette = 11=#ff2
+# light blue
+palette = 12=#48f
+# light magenta
+palette = 13=#e6e
+# light cyan
+palette = 14=#6ff
+# white
+palette = 15=#fff
+
+foreground = #ddd
+
+# These are tolerable themes
+# theme = Nocturnal Winter
+# theme = Material Design Colors
+# theme = Kibble
+# theme = Kitty Default
+# theme = Havn Skumring
+# theme = Gruber Darker
+# theme = Grape
+# theme = Deep
+# theme = Citruszest
+# theme = Galizur
+# chalk needs background set to black
+# theme = Chalk
+# #background = #000
+# theme = CGA
+# theme = Apple System Colors
+# theme = Adwaita Dark
+# theme = Builtin Dark
+# theme = Wombat
