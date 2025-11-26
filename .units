@@ -1,5 +1,8 @@
 # $FreeBSD$
 
+# dimensionless
+node 1
+
 # primitive units
 
 m			!a!
