@@ -167,7 +167,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/bin/check_git_add.py"
+            "command": "check_git_add.py"
           }
         ]
       }
