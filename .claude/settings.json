@@ -1,8 +1,22 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(awk:*)",
+      "Bash(aws acm list-certificates:*)",
+      "Bash(aws apigateway get-rest-api:*)",
+      "Bash(aws apigateway get-rest-apis:*)",
+      "Bash(aws cloudfront list-distributions:*)",
+      "Bash(aws cognito-idp list-user-pools:*)",
+      "Bash(aws dynamodb describe-table:*)",
+      "Bash(aws dynamodb list-tables:*)",
+      "Bash(aws lambda list-functions:*)",
+      "Bash(aws route53 list-hosted-zones-by-name:*)",
+      "Bash(aws s3 ls:*)",
+      "Bash(aws sts get-caller-identity:*)",
       "Bash(cargo update:*)",
       "Bash(cat:*)",
       "Bash(cd:*)",
@@ -10,6 +24,8 @@
       "Bash(cp:*)",
       "Bash(curl:*)",
       "Bash(diff:*)",
+      "Bash(dig:*)",
+      "Bash(echo:*)",
       "Bash(egrep:*)",
       "Bash(export:*)",
       "Bash(find:*)",
@@ -19,6 +35,7 @@
       "Bash(git branch:*)",
       "Bash(git checkout:*)",
       "Bash(git commit:*)",
+      "Bash(git diff-tree:*)",
       "Bash(git diff:*)",
       "Bash(git fetch:*)",
       "Bash(git grep:*)",
@@ -30,13 +47,23 @@
       "Bash(git restore:*)",
       "Bash(git rev-parse:*)",
       "Bash(git rm:*)",
+      "Bash(git show:*)",
+      "Bash(go build:*)",
+      "Bash(go doc:*)",
+      "Bash(go get:*)",
       "Bash(go list:*)",
+      "Bash(go mod:*)",
+      "Bash(go test:*)",
+      "Bash(go tool staticcheck:*)",
+      "Bash(go vet:*)",
+      "Bash(GORACE=\"atexit_sleep_ms=0\" go test:*)",
       "Bash(grep:*)",
       "Bash(head:*)",
       "Bash(jq:*)",
+      "Bash(kustomize build:*)",
       "Bash(ls:*)",
-      "Bash(ls)",
       "Bash(lucky_commit)",
+      "Bash(md5:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(npm outdated)",
@@ -44,7 +71,13 @@
       "Bash(npm run lint)",
       "Bash(npm run typecheck:*)",
       "Bash(npm test:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx playwright:*)",
+      "Bash(npx prettier:*)",
       "Bash(pip show:*)",
+      "Bash(prettier:*)",
+      "Bash(printf:*)",
       "Bash(pytest:*)",
       "Bash(python3 -m py_compile:*)",
       "Bash(rg:*)",
@@ -55,8 +88,16 @@
       "Bash(sed:*)",
       "Bash(source:*)",
       "Bash(tail:*)",
+      "Bash(terraform fmt:*)",
+      "Bash(terraform init:*)",
+      "Bash(terraform output:*)",
+      "Bash(terraform plan:*)",
+      "Bash(terraform providers lock:*)",
+      "Bash(terraform refresh:*)",
+      "Bash(terraform state list:*)",
       "Bash(test:*)",
       "Bash(touch:*)",
+      "Bash(tree:*)",
       "Bash(uv --version)",
       "Bash(uv config:*)",
       "Bash(uv init:*)",
@@ -64,8 +105,10 @@
       "Bash(uv pip install:*)",
       "Bash(uv run:*)",
       "Bash(uv venv:*)",
+      "Bash(wc:*)",
       "mcp__atlassian__atlassianUserInfo",
       "mcp__atlassian__getAccessibleAtlassianResources",
+      "mcp__atlassian__getJiraIssue",
       "mcp__atlassian__searchJiraIssuesUsingJql",
       "mcp__aws-documentation__read_documentation",
       "mcp__aws-documentation__recommend",
@@ -74,19 +117,30 @@
       "mcp__aws-terraform__SearchAwsProviderDocs",
       "mcp__aws-terraform__SearchSpecificAwsIaModules",
       "mcp__aws-terraform__SearchUserProvidedModule",
-      "mcp__gemini__chat",
+      "mcp__claude_ai_Atlassian__atlassianUserInfo",
+      "mcp__claude_ai_Atlassian__getAccessibleAtlassianResources",
+      "mcp__claude_ai_Atlassian__getJiraIssue",
+      "mcp__claude_ai_Atlassian__getJiraProjectIssueTypesMetadata",
+      "mcp__claude_ai_Notion__notion-fetch",
+      "mcp__claude_ai_Notion__notion-search",
       "mcp__github__get_file_contents",
       "mcp__github__get_issue_comments",
       "mcp__github__get_issue",
       "mcp__github__get_me",
       "mcp__github__search_issues",
+      "mcp__pagerduty__list_services",
+      "mcp__pagerduty__list_teams",
+      "mcp__terraform__get_provider_capabilities",
+      "mcp__terraform__get_provider_details",
       "mcp__terraform__getProviderDocs",
       "mcp__terraform__moduleDetails",
       "mcp__terraform__resolveProviderDocID",
+      "mcp__terraform__search_providers",
       "mcp__terraform__searchModules",
       "Read(~/.bash_profile)",
       "Read(~/.bashrc)",
       "Read(~/.zshrc)",
+      "WebFetch",
       "WebFetch(domain:developers.cloudflare.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:docs.aws.amazon.com)",
@@ -95,10 +149,17 @@
       "WebFetch(domain:platform.openai.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:www.terraform.io)",
+      "WebSearch",
       "Bash(true)"
     ],
-    "deny": []
+    "deny": [],
+    "ask": [
+      "mcp__atlassian__editJiraIssue"
+    ],
+    "defaultMode": "default"
   },
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -106,15 +167,145 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/working/claude-hooks/bin/check_git_add"
+            "command": "~/bin/check_git_add.py"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ryan.moore/.claude/hooks/peon-ping/peon.sh",
+            "timeout": 10,
+            "async": true
           }
         ]
       }
     ]
   },
-  "model": "opusplan",
   "statusLine": {
     "type": "command",
     "command": "printf '\\033[01;32m%s\\033[0;31m@\\033[0;33m%s\\033[00m:\\033[01;34m%s\\033[00m' \"$(whoami)\" \"$(hostname -s)\" \"$(basename \"$(pwd)\")\""
-  }
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
+  "autoUpdatesChannel": "latest",
+  "editorMode": "vim",
+  "preferredNotifChannel": "ghostty",
+  "fileCheckpointingEnabled": false,
+  "teammateMode": "tmux",
+  "remoteControlAtStartup": false
 }
