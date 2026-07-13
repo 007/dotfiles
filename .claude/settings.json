@@ -304,11 +304,14 @@
     "ralph-loop@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "xhigh",
-  "autoUpdatesChannel": "latest",
+  "effortLevel": "high",
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
   "editorMode": "vim",
   "preferredNotifChannel": "ghostty",
   "fileCheckpointingEnabled": false,
   "teammateMode": "tmux",
-  "remoteControlAtStartup": false
+  "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
 }

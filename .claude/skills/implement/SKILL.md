@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement a feature or task with a plan-first, verify-after workflow. Gathers context, proposes a plan, waits for approval, implements incrementally, and validates before declaring done.
+description: LAMBDA: Implement a feature or task with a plan-first, verify-after workflow. Gathers context, proposes a plan, waits for approval, implements incrementally, and validates before declaring done.
 argument-hint: <ticket-url-or-description>
 ---
 

@@ -28,6 +28,21 @@ export AWS_SDK_LOAD_CONFIG=1
 export AWS_EC2_METADATA_DISABLED=true
 export BASH_SILENCE_DEPRECATION_WARNING=1 # yes apple, I want to use bash
 
+# set terminal overrides if not already set - ghostty isn't universally recognized
+if [ "$TERM" = "xterm-ghostty" ]; then
+    # only if file/dir exist, first match wins
+    [ -e "/Applications/Ghostty.app/Contents/Resources/terminfo" ] \
+      && : ${TERMINFO:=/Applications/Ghostty.app/Contents/Resources/terminfo}
+
+    [ -e "${HOME}/.terminfo/x/xterm-ghostty" ] \
+      && : ${TERMINFO:=${HOME}/.terminfo/x/xterm-ghostty}
+
+    # override if unset
+    : ${TERM_PROGRAM:=ghostty}
+    : ${TERM_PROGRAM_VERSION:=1.2.3}
+    : ${COLORTERM:=truecolor}
+fi
+
 # go config
 export GOCACHE="${HOME}/.cache/go"
 export GOMODCACHE="${HOME}/.cache/go/pkg/mod"

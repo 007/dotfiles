@@ -12,11 +12,13 @@ alias grep="grep --color=auto"
 alias benice="nice -n19 ionice -c 3"
 alias ..="cd .."
 alias lintpuppet='find . -type f -name "*.pp" -exec puppet parser validate {} + && puppet-lint --fail-on-warnings modules || figlet FAIL'
-alias gitgc='nice -n19 ionice -c 3 git repack -a -d -f --depth=1000 --window=500'
+#alias gitgc='nice -n19 ionice -c 3 git repack -a -d -f --depth=1000 --window=500'
+alias gitgc='taskpolicy -c maintenance git repack -a -d -f --depth=1000 --window=500'
 alias bruteclean='git -c gc.reflogExpireUnreachable=0 -c gc.pruneExpire=now gc'
 alias gitdev='git log --oneline develop..HEAD'
 alias gitdevp='git log -p develop..HEAD'
 alias gitdevd='git diff develop..HEAD'
+alias cleangit='git checkout main && git fetch --prune --tags --prune-tags origin && git merge FETCH_HEAD && for x in $(git branch -vv | awk '"'"'$1 != "*" {print $1}'"'"');do git checkout "$x";git rebase --no-reapply-cherry-picks main;git rebase --abort;git checkout main;git branch -d "$x";done'
 alias mousefix='gsettings set org.gnome.settings-daemon.plugins.cursor active false'
 alias qreset='echo -e "\0033\0143"'
 alias lrmax='lrzip -vv -Uz -N 19 -L 9'
@@ -63,5 +65,7 @@ alias freezedeps='bazel run //common/python/pip:freeze_dependencies -- python_37
 alias molly='bazel run //tools/monorepo/molly:molly'
 alias repro='bazel test --config=python_next --config=intel-cuda --cache_test_results=no --build_tests_only //experimental/rmoore/pynext:torch_repro_generated_tests'
 
-alias docker='podman'
 alias deepseek='ollama run deepseek-r1:32b'
+alias giter='git diff --exit-code HEAD > /dev/null && git fetch --prune --tags --prune-tags origin && git merge FETCH_HEAD && git restore-mtime -q'
+alias fixtty='stty sane && stty echo && printf "\e[?1000l\e[?1002l\e[?1003l\e[?1006l"'
+alias figlet='figlet -w $COLUMNS'

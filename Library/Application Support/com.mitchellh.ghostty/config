@@ -1,5 +1,5 @@
 font-family = Monaco
-font-size = 18
+font-size = 28
 #font-synthetic-style = false
 adjust-cell-height = -20%
 #bold-is-bright = true
@@ -9,6 +9,8 @@ cursor-style-blink = false
 copy-on-select = clipboard
 macos-secure-input-indication = true
 window-inherit-working-directory = false
+scrollback-limit = 1000000000
+shell-integration-features = ssh-terminfo,ssh-env
 
 # cursor-color = #ffffff
 # selection-background = #b3d7ff
@@ -72,3 +74,4 @@ foreground = #ddd
 # theme = Adwaita Dark
 # theme = Builtin Dark
 # theme = Wombat
+keybind = shift+enter=text:\x1b\r

@@ -136,3 +136,5 @@
 	allowedSignersFile = ~/.config/git/allowed_signers
 [url "ssh://git@github.com/"]
 	insteadOf = https://github.com/
+[rerere]
+	enabled = true

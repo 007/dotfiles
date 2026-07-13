@@ -38,7 +38,7 @@ function update_all_repos() {
       local repo_path="$x"
 
       if [[ $background == "false" ]]; then
-        echo "${repo_path}"
+        echo "${repo_name}"
       fi
       # if [[ ${cleanup} -gt 0 ]]; then
       #   # subshell for `cd`
@@ -124,7 +124,7 @@ type -P "tmutil" > /dev/null && tmutil snapshot
 # Make sure we have all available repos in our `pristine` dir
 echo "Checking for missing repos"
 cd "${SYNC_PRISTINE_DIR}"
-for x in $(gh repo list lambdal --source --no-archived --limit 999 --json name --jq '.[]|.name'); do
+for x in $(gh repo list lambdal --source --no-archived --limit 1500 --json name,updatedAt --jq '.[] | select( ((.updatedAt // "2020-01-01T00:00:00Z") | fromdateiso8601) > (now - (86400 * 90))) | .name'); do
   # Check if repo exists in any pristine* directory
   repo_exists=false
   for dir in "${SYNC_PRISTINE_DIR}"*/"${x}/.git"; do
